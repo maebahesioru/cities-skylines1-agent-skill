@@ -49,6 +49,10 @@ filtering. This is the API-friendly replacement for reading service icons from
 the screen. Facility items include prefab footprint and rotation so an agent can
 avoid placing large buildings through roads.
 
+By default this excludes internal pipe helper buildings such as `Water Pipe
+Junction` and `Heating Pipe Junction`; pass `includeMapObjects=true` when an
+agent specifically needs raw map objects.
+
 ```powershell
 Invoke-RestMethod http://127.0.0.1:32123/state/facilities?limit=500
 Invoke-RestMethod http://127.0.0.1:32123/state/facilities?service=HealthCare

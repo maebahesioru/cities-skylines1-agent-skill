@@ -195,6 +195,11 @@ namespace SkylinesAgentBridge
                     continue;
                 }
 
+                if (!includeMapObjects && IsInternalNetworkHelperBuilding(info))
+                {
+                    continue;
+                }
+
                 string service = info.m_class.m_service.ToString();
                 string subService = info.m_class.m_subService.ToString();
                 string subServiceKey = service + "/" + subService;
@@ -447,6 +452,12 @@ namespace SkylinesAgentBridge
                 service == "Disaster";
         }
 
+        private static bool IsInternalNetworkHelperBuilding(BuildingInfo info)
+        {
+            return info != null &&
+                (info.name == "Water Pipe Junction" || info.name == "Heating Pipe Junction");
+        }
+
         private sealed class BuildingAnomalyCollector
         {
             private readonly int limit;
@@ -475,6 +486,11 @@ namespace SkylinesAgentBridge
 
                     BuildingInfo buildingInfo = building.Info;
                     if (buildingInfo == null || buildingInfo.m_class == null)
+                    {
+                        continue;
+                    }
+
+                    if (IsInternalNetworkHelperBuilding(buildingInfo))
                     {
                         continue;
                     }
