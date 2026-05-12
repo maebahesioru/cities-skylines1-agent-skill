@@ -34,8 +34,6 @@ Cities: Skylines 1 をAIエージェントから操作するための、Codex Sk
 
 道路の異常は画像認識ではなく、CS1のネットワークデータから検出します。検出後は、削除APIと作成APIを分けて叩いて修復します。
 
-![道路修復の確認](docs/assets/road-repair-before.jpg)
-
 ## API
 
 取得API:
@@ -127,6 +125,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-new-map.ps1
 ## 状態
 
 CS1 on Windows向けの実験プロジェクトです。まずは捨てセーブで試してください。
+
+## リポジトリ構成
+
+```text
+.
+├── SKILL.md                 # Codex Skill手順
+├── agents/openai.yaml       # Skill UIメタデータ
+├── src/                     # CS1 MODソース
+├── scripts/                 # ビルド、起動、検査、修復、保存スクリプト
+├── docs/api.md              # APIリファレンス
+└── docs/assets/             # README用スクリーンショット
+```
 
 ## ライセンス
 

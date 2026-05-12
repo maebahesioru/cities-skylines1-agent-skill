@@ -34,8 +34,6 @@ The bridge can resume a save, inspect city data, repair infrastructure, and keep
 
 Road issues are detected from CS1 network data, not image recognition. The agent can then call separate APIs to bulldoze bad segments and rebuild clean connections.
 
-![Road repair inspection](docs/assets/road-repair-before.jpg)
-
 ## API Surface
 
 Read APIs:
@@ -140,8 +138,7 @@ Keep the agent workflow generic. Prefer separate commands over a magical repair 
 ├── src/                     # CS1 mod source
 ├── scripts/                 # Build, launch, inspect, repair, save scripts
 ├── docs/api.md              # API reference
-├── docs/assets/             # README screenshots
-└── captures/                # Raw verification screenshots
+└── docs/assets/             # README screenshots
 ```
 
 ## Status
