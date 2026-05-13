@@ -144,6 +144,13 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return GameState.BuildFacilitiesJson(limit, service, includeMapObjects); });
             }
 
+            if (request.Method == "GET" && request.Path == "/state/growables")
+            {
+                int limit = request.GetQueryInt("limit", 500);
+                string service = request.GetQueryString("service", "");
+                return RunOnGameThread(request, delegate { return GameState.BuildGrowablesJson(limit, service); });
+            }
+
             if (request.Method == "GET" && request.Path == "/state/networks")
             {
                 int limit = request.GetQueryInt("limit", 500);
@@ -213,6 +220,12 @@ namespace SkylinesAgentBridge
             {
                 string body = request.Body;
                 return RunOnGameThread(request, delegate { return ZoneCommands.SetZone(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/repair-zones-to-growables")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return ZoneCommands.RepairZonesToGrowables(body); });
             }
 
             if (request.Method == "POST" && request.Path == "/commands/place-building")
@@ -300,6 +313,7 @@ namespace SkylinesAgentBridge
                 if (request.Path == "/state/zones") return "Read zoning summary";
                 if (request.Path == "/state/economy") return "Read economy state";
                 if (request.Path == "/state/facilities") return "Read facilities";
+                if (request.Path == "/state/growables") return "Read growable buildings";
                 if (request.Path == "/state/networks") return "Read networks";
                 if (request.Path == "/state/road-anomalies") return "Inspect road anomalies";
                 if (request.Path == "/state/building-anomalies") return "Inspect building placement";
@@ -320,6 +334,11 @@ namespace SkylinesAgentBridge
             if (request.Path == "/commands/set-zone")
             {
                 return "Set zone " + JsonUtil.GetString(body, "zone", "");
+            }
+
+            if (request.Path == "/commands/repair-zones-to-growables")
+            {
+                return "Repair zones to growables";
             }
 
             if (request.Path == "/commands/place-building")

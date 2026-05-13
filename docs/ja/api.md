@@ -55,6 +55,15 @@ Invoke-RestMethod "http://127.0.0.1:32123/state/chirps?limit=50"
 Invoke-RestMethod http://127.0.0.1:32123/state/zones
 ```
 
+## GET /state/growables
+
+既に建っている住宅・商業・産業・オフィスの growable 建物を返します。
+service、subService、建物サイズ、位置、有効/廃墟状態、問題フラグを含むため、ゾーンを塗る前に既存の街区を避けられます。
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:32123/state/growables?limit=500"
+```
+
 ## GET /prefabs/roads
 
 道路として扱える読み込み済み `NetInfo` prefab を返します。
@@ -184,9 +193,23 @@ Invoke-RestMethod "http://127.0.0.1:32123/state/zone-anomalies?limit=200&include
 ```json
 {
   "dryRun": true,
+  "preserveOccupied": true,
   "zone": "ResidentialLow",
   "center": { "x": 40, "z": 0 },
   "radius": 32
+}
+```
+
+`preserveOccupied` は既定で `true` です。既存の住宅・商業・産業・オフィス・公共サービス・公園・モニュメント建物がある zoning block はスキップし、広めのゾーン操作で発展済み区画を上書きしないようにします。
+
+## POST /commands/repair-zones-to-growables
+
+既存の growable 建物がある zoning block を、最寄りの住宅・商業・産業・オフィス建物に合わせて修復します。
+住宅と商業が同じ距離にあるような曖昧な混在ブロックはスキップします。
+
+```json
+{
+  "dryRun": true
 }
 ```
 

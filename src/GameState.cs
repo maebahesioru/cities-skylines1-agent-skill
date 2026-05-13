@@ -507,6 +507,102 @@ namespace SkylinesAgentBridge
                 ",\"facilities\":[" + items.ToString() + "]}");
         }
 
+        public static CommandResult BuildGrowablesJson(int limit, string serviceFilter)
+        {
+            if (limit < 0)
+            {
+                limit = 0;
+            }
+            if (limit > 5000)
+            {
+                limit = 5000;
+            }
+
+            BuildingManager manager = BuildingManager.instance;
+            StringBuilder items = new StringBuilder();
+            StringBuilder services = new StringBuilder();
+            StringBuilder subServices = new StringBuilder();
+            System.Collections.Generic.Dictionary<string, int> countByService = new System.Collections.Generic.Dictionary<string, int>();
+            System.Collections.Generic.Dictionary<string, int> countBySubService = new System.Collections.Generic.Dictionary<string, int>();
+            int total = 0;
+            int emitted = 0;
+            bool firstItem = true;
+
+            for (ushort i = 1; i < manager.m_buildings.m_buffer.Length; i++)
+            {
+                Building building = manager.m_buildings.m_buffer[i];
+                if ((building.m_flags & Building.Flags.Created) == Building.Flags.None)
+                {
+                    continue;
+                }
+
+                BuildingInfo info = building.Info;
+                if (info == null || info.m_class == null)
+                {
+                    continue;
+                }
+
+                string service = info.m_class.m_service.ToString();
+                if (!IsGrowableService(service))
+                {
+                    continue;
+                }
+
+                if (serviceFilter != null && serviceFilter.Length > 0 && service != serviceFilter)
+                {
+                    continue;
+                }
+
+                string subService = info.m_class.m_subService.ToString();
+                string subServiceKey = service + "/" + subService;
+                Increment(countByService, service);
+                Increment(countBySubService, subServiceKey);
+
+                total++;
+                if (emitted >= limit)
+                {
+                    continue;
+                }
+
+                if (!firstItem)
+                {
+                    items.Append(",");
+                }
+
+                string problems = building.m_problems.IsNone ? "" : building.m_problems.ToString();
+                Vector3 position = building.m_position;
+                items.Append("{\"id\":").Append(i);
+                items.Append(",\"prefab\":\"").Append(JsonUtil.Escape(info.name)).Append("\"");
+                items.Append(",\"displayName\":\"").Append(JsonUtil.Escape(info.GetUncheckedLocalizedTitle())).Append("\"");
+                items.Append(",\"active\":").Append(JsonUtil.Bool((building.m_flags & Building.Flags.Active) != Building.Flags.None));
+                items.Append(",\"abandoned\":").Append(JsonUtil.Bool((building.m_flags & Building.Flags.Abandoned) != Building.Flags.None));
+                items.Append(",\"flags\":\"").Append(JsonUtil.Escape(building.m_flags.ToString())).Append("\"");
+                items.Append(",\"service\":\"").Append(JsonUtil.Escape(service)).Append("\"");
+                items.Append(",\"subService\":\"").Append(JsonUtil.Escape(subService)).Append("\"");
+                items.Append(",\"level\":\"").Append(JsonUtil.Escape(info.m_class.m_level.ToString())).Append("\"");
+                items.Append(",\"width\":").Append(info.GetWidth());
+                items.Append(",\"length\":").Append(info.GetLength());
+                items.Append(",\"angleDegrees\":").Append(JsonUtil.Number(building.m_angle * Mathf.Rad2Deg));
+                items.Append(",\"problems\":\"").Append(JsonUtil.Escape(problems)).Append("\"");
+                items.Append(",\"position\":{\"x\":").Append(JsonUtil.Number(position.x));
+                items.Append(",\"y\":").Append(JsonUtil.Number(position.y));
+                items.Append(",\"z\":").Append(JsonUtil.Number(position.z)).Append("}}");
+                firstItem = false;
+                emitted++;
+            }
+
+            AppendCountMap(services, countByService);
+            AppendCountMap(subServices, countBySubService);
+
+            return CommandResult.FromJson("{\"ok\":true,\"total\":" + total +
+                ",\"returned\":" + emitted +
+                ",\"limit\":" + limit +
+                ",\"serviceFilter\":\"" + JsonUtil.Escape(serviceFilter) + "\"" +
+                ",\"countsByService\":{" + services.ToString() + "}" +
+                ",\"countsBySubService\":{" + subServices.ToString() + "}" +
+                ",\"growables\":[" + items.ToString() + "]}");
+        }
+
         public static CommandResult BuildNetworksJson(int limit, string serviceFilter)
         {
             if (limit < 0)
@@ -689,6 +785,40 @@ namespace SkylinesAgentBridge
                 service == "FireDepartment" ||
                 service == "Education" ||
                 service == "Disaster";
+        }
+
+        private static bool IsGrowableService(string service)
+        {
+            return service == "Residential" ||
+                service == "Commercial" ||
+                service == "Industrial" ||
+                service == "Office";
+        }
+
+        private static void Increment(System.Collections.Generic.Dictionary<string, int> counts, string key)
+        {
+            if (counts.ContainsKey(key))
+            {
+                counts[key]++;
+            }
+            else
+            {
+                counts[key] = 1;
+            }
+        }
+
+        private static void AppendCountMap(StringBuilder json, System.Collections.Generic.Dictionary<string, int> counts)
+        {
+            bool first = true;
+            foreach (System.Collections.Generic.KeyValuePair<string, int> pair in counts)
+            {
+                if (!first)
+                {
+                    json.Append(",");
+                }
+                json.Append("\"").Append(JsonUtil.Escape(pair.Key)).Append("\":").Append(pair.Value);
+                first = false;
+            }
         }
 
         private static bool IsInternalNetworkHelperBuilding(BuildingInfo info)

@@ -67,6 +67,17 @@ for comparing residential, commercial, industrial, office, and unzoned area.
 Invoke-RestMethod http://127.0.0.1:32123/state/zones
 ```
 
+## GET /state/growables
+
+Returns existing growable residential, commercial, industrial, and office
+buildings with service, sub-service, footprint size, position, active/abandoned
+state, and problem flags. Use this before zoning to avoid painting over already
+developed blocks.
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:32123/state/growables?limit=500"
+```
+
 ## GET /prefabs/roads
 
 Returns loaded `NetInfo` prefabs that look like roads.
@@ -288,6 +299,7 @@ Request:
 ```json
 {
   "dryRun": true,
+  "preserveOccupied": true,
   "zone": "ResidentialLow",
   "center": { "x": 40, "z": 0 },
   "radius": 32
@@ -305,6 +317,21 @@ Supported zones:
 - `Office`
 
 The command paints existing zone blocks near `center`. It works best after roads have created zoning blocks.
+`preserveOccupied` defaults to `true` and skips zone blocks that already contain
+residential, commercial, industrial, office, service, park, or monument
+buildings, so broad zoning commands do not overwrite developed city blocks.
+
+## POST /commands/repair-zones-to-growables
+
+Repairs zone blocks that contain existing growable buildings by aligning
+non-empty zoning cells with the nearest residential, commercial, industrial, or
+office building. Blocks with ambiguous mixed-use occupancy are skipped.
+
+```json
+{
+  "dryRun": true
+}
+```
 
 ## POST /commands/place-building
 
