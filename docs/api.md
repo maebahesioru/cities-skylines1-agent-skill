@@ -46,6 +46,17 @@ and workplace demand. Values are `0..100`.
 Invoke-RestMethod http://127.0.0.1:32123/state/demand
 ```
 
+## GET /state/chirps
+
+Returns recent Chirper/citizen messages from CS1's message manager, including
+sender name, sender id, text, message type, and message metadata when available.
+This is useful for reading citizen feedback such as housing demand, tax,
+traffic, service, and city satisfaction comments without OCR.
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:32123/state/chirps?limit=50"
+```
+
 ## GET /state/zones
 
 Returns zoning cell counts and approximate area by zone type. CS1 zoning cells

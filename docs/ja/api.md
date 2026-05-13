@@ -37,6 +37,16 @@ CS1 UI に表示される3本の需要バー、住宅・商業・職場需要を
 Invoke-RestMethod http://127.0.0.1:32123/state/demand
 ```
 
+## GET /state/chirps
+
+CS1 の message manager から、最近の Chirper/市民メッセージを返します。
+送信者名、sender id、本文、メッセージ種別、取得できる場合は message id やタグも含みます。
+住宅需要、税金、交通、サービス、市民満足度などの声を OCR なしで読むための API です。
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:32123/state/chirps?limit=50"
+```
+
 ## GET /state/zones
 
 ゾーン種別ごとのセル数と概算面積を返します。CS1 の zoning cell は 8m x 8m として扱い、`areaSquareMeters` は住宅・商業・産業・オフィス・未指定の面積比較に使うための概算値です。

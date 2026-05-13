@@ -120,6 +120,12 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, GameState.BuildDemandJson);
             }
 
+            if (request.Method == "GET" && request.Path == "/state/chirps")
+            {
+                int limit = request.GetQueryInt("limit", 50);
+                return RunOnGameThread(request, delegate { return GameState.BuildChirpsJson(limit); });
+            }
+
             if (request.Method == "GET" && request.Path == "/state/zones")
             {
                 return RunOnGameThread(request, GameState.BuildZonesJson);
@@ -290,6 +296,7 @@ namespace SkylinesAgentBridge
                 if (request.Path == "/state/summary") return "Read city summary";
                 if (request.Path == "/state/problems") return "Read city problems";
                 if (request.Path == "/state/demand") return "Read zone demand";
+                if (request.Path == "/state/chirps") return "Read citizen chirps";
                 if (request.Path == "/state/zones") return "Read zoning summary";
                 if (request.Path == "/state/economy") return "Read economy state";
                 if (request.Path == "/state/facilities") return "Read facilities";

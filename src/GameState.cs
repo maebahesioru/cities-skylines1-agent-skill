@@ -47,6 +47,57 @@ namespace SkylinesAgentBridge
             return CommandResult.FromJson(json.ToString());
         }
 
+        public static CommandResult BuildChirpsJson(int limit)
+        {
+            if (limit < 0)
+            {
+                limit = 0;
+            }
+            if (limit > 200)
+            {
+                limit = 200;
+            }
+
+            MessageManager manager = Singleton<MessageManager>.instance;
+            MessageBase[] messages = manager == null ? null : manager.GetRecentMessages();
+            int total = 0;
+            int emitted = 0;
+            bool first = true;
+            StringBuilder items = new StringBuilder();
+
+            if (messages != null)
+            {
+                for (int i = messages.Length - 1; i >= 0; i--)
+                {
+                    MessageBase message = messages[i];
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    total++;
+                    if (emitted >= limit)
+                    {
+                        continue;
+                    }
+
+                    if (!first)
+                    {
+                        items.Append(",");
+                    }
+
+                    AppendChirp(items, i, message);
+                    first = false;
+                    emitted++;
+                }
+            }
+
+            return CommandResult.FromJson("{\"ok\":true,\"total\":" + total +
+                ",\"returned\":" + emitted +
+                ",\"limit\":" + limit +
+                ",\"chirps\":[" + items.ToString() + "]}");
+        }
+
         public static CommandResult BuildZonesJson()
         {
             ZoneManager manager = ZoneManager.instance;
@@ -133,6 +184,44 @@ namespace SkylinesAgentBridge
             json.Append(",\"value\":").Append(value);
             json.Append(",\"max\":100");
             json.Append(",\"color\":\"").Append(color).Append("\"}");
+        }
+
+        private static void AppendChirp(StringBuilder json, int index, MessageBase message)
+        {
+            string type = message.GetType().Name;
+            string senderName = "";
+            string text = "";
+            uint senderId = 0;
+
+            try { senderName = message.senderName; } catch { }
+            try { text = message.text; } catch { }
+            try { senderId = message.senderID; } catch { }
+
+            json.Append("{\"index\":").Append(index);
+            json.Append(",\"type\":\"").Append(JsonUtil.Escape(type)).Append("\"");
+            json.Append(",\"senderName\":\"").Append(JsonUtil.Escape(senderName)).Append("\"");
+            json.Append(",\"senderId\":").Append(senderId);
+            json.Append(",\"text\":\"").Append(JsonUtil.Escape(text)).Append("\"");
+
+            CitizenMessage citizen = message as CitizenMessage;
+            if (citizen != null)
+            {
+                json.Append(",\"messageId\":\"").Append(JsonUtil.Escape(citizen.m_messageID)).Append("\"");
+                json.Append(",\"keyId\":\"").Append(JsonUtil.Escape(citizen.m_keyID)).Append("\"");
+                json.Append(",\"tag\":\"").Append(JsonUtil.Escape(citizen.m_tag)).Append("\"");
+            }
+            else
+            {
+                GenericMessage generic = message as GenericMessage;
+                if (generic != null)
+                {
+                    json.Append(",\"messageId\":\"").Append(JsonUtil.Escape(generic.m_messageID)).Append("\"");
+                    json.Append(",\"senderKey\":\"").Append(JsonUtil.Escape(generic.m_senderID)).Append("\"");
+                    json.Append(",\"randomId\":").Append(generic.m_randomID);
+                }
+            }
+
+            json.Append("}");
         }
 
         private static void AppendZoneSummary(StringBuilder json, string zoneName, int cells)
