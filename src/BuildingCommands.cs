@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using ColossalFramework;
 using ColossalFramework.Math;
@@ -128,7 +129,7 @@ namespace SkylinesAgentBridge
             }
 
             simulation.m_currentBuildIndex += 1u;
-            buildings.ReleaseBuilding(id);
+            ReleaseBuilding(buildings, id);
 
             string json = "{\"ok\":true,\"dryRun\":false,\"oldBuildingId\":" + id +
                 ",\"newBuildingId\":" + newBuildingId +
@@ -209,6 +210,35 @@ namespace SkylinesAgentBridge
             float z = JsonUtil.GetPointNumber(body, name, "z", 0f);
             float y = JsonUtil.GetPointNumber(body, name, "y", 0f);
             return new Vector3(x, y, z);
+        }
+
+        private static void ReleaseBuilding(BuildingManager manager, ushort id)
+        {
+            try
+            {
+                manager.ReleaseBuilding(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == null || ex.Message.IndexOf("Already in the same thread") < 0)
+                {
+                    throw;
+                }
+
+                MethodInfo method = typeof(BuildingManager).GetMethod(
+                    "ReleaseBuildingImplementation",
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    null,
+                    new Type[] { typeof(ushort) },
+                    null);
+
+                if (method == null)
+                {
+                    throw;
+                }
+
+                method.Invoke(manager, new object[] { id });
+            }
         }
     }
 }

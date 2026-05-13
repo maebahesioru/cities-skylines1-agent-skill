@@ -28,7 +28,7 @@ namespace SkylinesAgentBridge
 
                 if (!dryRun)
                 {
-                    manager.ReleaseBuilding(id);
+                    ReleaseBuilding(manager, id);
                 }
 
                 return CommandResult.FromJson("{\"ok\":true,\"dryRun\":" + JsonUtil.Bool(dryRun) + ",\"entityType\":\"building\",\"id\":" + id + "}");
@@ -84,6 +84,35 @@ namespace SkylinesAgentBridge
 
                 MethodInfo method = typeof(NetManager).GetMethod(
                     "ReleaseSegmentImplementation",
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    null,
+                    new Type[] { typeof(ushort) },
+                    null);
+
+                if (method == null)
+                {
+                    throw;
+                }
+
+                method.Invoke(manager, new object[] { id });
+            }
+        }
+
+        private static void ReleaseBuilding(BuildingManager manager, ushort id)
+        {
+            try
+            {
+                manager.ReleaseBuilding(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == null || ex.Message.IndexOf("Already in the same thread") < 0)
+                {
+                    throw;
+                }
+
+                MethodInfo method = typeof(BuildingManager).GetMethod(
+                    "ReleaseBuildingImplementation",
                     BindingFlags.Instance | BindingFlags.NonPublic,
                     null,
                     new Type[] { typeof(ushort) },
