@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/public/agent-bridge-icon.svg" width="96" height="96" alt="Cities: Skylines Agent Bridge icon">
+  <img src="docs/assets/readme-header.png" width="100%" alt="Cities: Skylines Agent Bridge header">
 </p>
 
 <h1 align="center">cities-skylines1-agent-skill</h1>
