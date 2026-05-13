@@ -451,7 +451,8 @@ Request:
 }
 ```
 
-`speed` is clamped to `0..3`.
+`speed` is clamped to `1..3`. Use `paused: true` to pause the
+simulation while keeping the selected speed in a valid UI state.
 
 ## POST /commands/set-tax-rate
 
