@@ -624,6 +624,9 @@ namespace SkylinesAgentBridge
 
         private sealed class RoadAnomalyCollector
         {
+            private const float RoadOverlapDistance = 3f;
+            private const float RoadCrossingHeightTolerance = 5f;
+            private const float RoadOverlapMinLength = 18f;
             private readonly int limit;
             private readonly float nearMissDistance;
             private readonly float shortSegmentLength;
@@ -666,6 +669,8 @@ namespace SkylinesAgentBridge
                         AddShortSegment(i, segment, start, end, length, startConnections, endConnections);
                     }
                 }
+
+                CollectRoadOverlapAnomalies(manager);
 
                 for (ushort i = 1; i < manager.m_nodes.m_buffer.Length; i++)
                 {
@@ -758,6 +763,38 @@ namespace SkylinesAgentBridge
                 }
             }
 
+            private void AddOverlappingRoadSegments(ushort segmentAId, ushort segmentBId, NetSegment segmentA, NetSegment segmentB, float distance, float overlapLength)
+            {
+                if (Begin("overlappingRoadSegments"))
+                {
+                    items.Append(",\"segmentAId\":").Append(segmentAId);
+                    items.Append(",\"segmentBId\":").Append(segmentBId);
+                    items.Append(",\"prefabA\":\"").Append(JsonUtil.Escape(segmentA.Info.name)).Append("\"");
+                    items.Append(",\"prefabB\":\"").Append(JsonUtil.Escape(segmentB.Info.name)).Append("\"");
+                    items.Append(",\"distance\":").Append(JsonUtil.Number(distance));
+                    items.Append(",\"overlapLength\":").Append(JsonUtil.Number(overlapLength));
+                    AppendSegment("segmentA", segmentA);
+                    AppendSegment("segmentB", segmentB);
+                    items.Append("}");
+                }
+            }
+
+            private void AddCrossingRoadWithoutNode(ushort segmentAId, ushort segmentBId, NetSegment segmentA, NetSegment segmentB, Vector3 position, float heightDifference)
+            {
+                if (Begin("roadCrossingWithoutNode"))
+                {
+                    items.Append(",\"segmentAId\":").Append(segmentAId);
+                    items.Append(",\"segmentBId\":").Append(segmentBId);
+                    items.Append(",\"prefabA\":\"").Append(JsonUtil.Escape(segmentA.Info.name)).Append("\"");
+                    items.Append(",\"prefabB\":\"").Append(JsonUtil.Escape(segmentB.Info.name)).Append("\"");
+                    items.Append(",\"heightDifference\":").Append(JsonUtil.Number(heightDifference));
+                    AppendPoint("position", position);
+                    AppendSegment("segmentA", segmentA);
+                    AppendSegment("segmentB", segmentB);
+                    items.Append("}");
+                }
+            }
+
             private bool Begin(string type)
             {
                 total++;
@@ -790,6 +827,61 @@ namespace SkylinesAgentBridge
                 items.Append(",\"").Append(name).Append("\":{\"x\":").Append(JsonUtil.Number(point.x));
                 items.Append(",\"y\":").Append(JsonUtil.Number(point.y));
                 items.Append(",\"z\":").Append(JsonUtil.Number(point.z)).Append("}");
+            }
+
+            private void AppendSegment(string name, NetSegment segment)
+            {
+                NetManager manager = NetManager.instance;
+                Vector3 start = manager.m_nodes.m_buffer[segment.m_startNode].m_position;
+                Vector3 end = manager.m_nodes.m_buffer[segment.m_endNode].m_position;
+                items.Append(",\"").Append(name).Append("\":{");
+                items.Append("\"startNodeId\":").Append(segment.m_startNode);
+                items.Append(",\"endNodeId\":").Append(segment.m_endNode);
+                AppendPoint("start", start);
+                AppendPoint("end", end);
+                items.Append("}");
+            }
+
+            private void CollectRoadOverlapAnomalies(NetManager manager)
+            {
+                for (ushort a = 1; a < manager.m_segments.m_buffer.Length; a++)
+                {
+                    NetSegment segmentA = manager.m_segments.m_buffer[a];
+                    if (!IsCreatedRoadSegment(segmentA))
+                    {
+                        continue;
+                    }
+
+                    Vector3 aStart = manager.m_nodes.m_buffer[segmentA.m_startNode].m_position;
+                    Vector3 aEnd = manager.m_nodes.m_buffer[segmentA.m_endNode].m_position;
+
+                    for (ushort b = (ushort)(a + 1); b < manager.m_segments.m_buffer.Length; b++)
+                    {
+                        NetSegment segmentB = manager.m_segments.m_buffer[b];
+                        if (!IsCreatedRoadSegment(segmentB) || SharesNode(segmentA, segmentB))
+                        {
+                            continue;
+                        }
+
+                        Vector3 bStart = manager.m_nodes.m_buffer[segmentB.m_startNode].m_position;
+                        Vector3 bEnd = manager.m_nodes.m_buffer[segmentB.m_endNode].m_position;
+
+                        Vector3 crossing;
+                        float heightDifference;
+                        if (SegmentsCrossWithoutNode(aStart, aEnd, bStart, bEnd, out crossing, out heightDifference))
+                        {
+                            AddCrossingRoadWithoutNode(a, b, segmentA, segmentB, crossing, heightDifference);
+                            continue;
+                        }
+
+                        float distance;
+                        float overlapLength;
+                        if (SegmentsOverlap(aStart, aEnd, bStart, bEnd, out distance, out overlapLength))
+                        {
+                            AddOverlappingRoadSegments(a, b, segmentA, segmentB, distance, overlapLength);
+                        }
+                    }
+                }
             }
 
             private static void FindNearestRoadSegment(NetManager manager, ushort nodeId, Vector3 point, ushort ownSegment, out ushort nearestSegment, out float distance)
@@ -839,6 +931,106 @@ namespace SkylinesAgentBridge
                 return FlatDistance(point, nearest);
             }
 
+            private static bool SegmentsCrossWithoutNode(Vector3 aStart, Vector3 aEnd, Vector3 bStart, Vector3 bEnd, out Vector3 crossing, out float heightDifference)
+            {
+                crossing = Vector3.zero;
+                heightDifference = 0f;
+
+                float ax = aEnd.x - aStart.x;
+                float az = aEnd.z - aStart.z;
+                float bx = bEnd.x - bStart.x;
+                float bz = bEnd.z - bStart.z;
+                float denom = ax * bz - az * bx;
+                if (Mathf.Abs(denom) < 0.0001f)
+                {
+                    return false;
+                }
+
+                float cx = bStart.x - aStart.x;
+                float cz = bStart.z - aStart.z;
+                float t = (cx * bz - cz * bx) / denom;
+                float u = (cx * az - cz * ax) / denom;
+                if (t <= 0.04f || t >= 0.96f || u <= 0.04f || u >= 0.96f)
+                {
+                    return false;
+                }
+
+                float aY = Mathf.Lerp(aStart.y, aEnd.y, t);
+                float bY = Mathf.Lerp(bStart.y, bEnd.y, u);
+                heightDifference = Mathf.Abs(aY - bY);
+                if (heightDifference > RoadCrossingHeightTolerance)
+                {
+                    return false;
+                }
+
+                crossing = new Vector3(aStart.x + ax * t, (aY + bY) * 0.5f, aStart.z + az * t);
+                return true;
+            }
+
+            private static bool SegmentsOverlap(Vector3 aStart, Vector3 aEnd, Vector3 bStart, Vector3 bEnd, out float distance, out float overlapLength)
+            {
+                distance = Mathf.Min(
+                    Mathf.Min(DistancePointToSegment(aStart, bStart, bEnd), DistancePointToSegment(aEnd, bStart, bEnd)),
+                    Mathf.Min(DistancePointToSegment(bStart, aStart, aEnd), DistancePointToSegment(bEnd, aStart, aEnd)));
+                overlapLength = 0f;
+
+                if (distance > RoadOverlapDistance)
+                {
+                    return false;
+                }
+
+                float aDx = aEnd.x - aStart.x;
+                float aDz = aEnd.z - aStart.z;
+                float bDx = bEnd.x - bStart.x;
+                float bDz = bEnd.z - bStart.z;
+                float aLength = Mathf.Sqrt(aDx * aDx + aDz * aDz);
+                float bLength = Mathf.Sqrt(bDx * bDx + bDz * bDz);
+                if (aLength < 0.001f || bLength < 0.001f)
+                {
+                    return false;
+                }
+
+                float dot = Mathf.Abs((aDx * bDx + aDz * bDz) / (aLength * bLength));
+                if (dot < 0.985f)
+                {
+                    return false;
+                }
+
+                float b0 = ProjectAlong(aStart, aEnd, bStart);
+                float b1 = ProjectAlong(aStart, aEnd, bEnd);
+                if (b0 > b1)
+                {
+                    float swap = b0;
+                    b0 = b1;
+                    b1 = swap;
+                }
+
+                float overlapStart = Mathf.Max(0f, b0);
+                float overlapEnd = Mathf.Min(aLength, b1);
+                overlapLength = overlapEnd - overlapStart;
+                if (overlapLength < RoadOverlapMinLength)
+                {
+                    return false;
+                }
+
+                float maxHeightDifference = Mathf.Max(
+                    Mathf.Abs(aStart.y - bStart.y),
+                    Mathf.Abs(aEnd.y - bEnd.y));
+                return maxHeightDifference <= RoadCrossingHeightTolerance;
+            }
+
+            private static float ProjectAlong(Vector3 start, Vector3 end, Vector3 point)
+            {
+                float dx = end.x - start.x;
+                float dz = end.z - start.z;
+                float length = Mathf.Sqrt(dx * dx + dz * dz);
+                if (length < 0.001f)
+                {
+                    return 0f;
+                }
+                return ((point.x - start.x) * dx + (point.z - start.z) * dz) / length;
+            }
+
             private static float FlatDistance(Vector3 a, Vector3 b)
             {
                 float dx = a.x - b.x;
@@ -875,6 +1067,14 @@ namespace SkylinesAgentBridge
                     }
                 }
                 return 0;
+            }
+
+            private static bool SharesNode(NetSegment a, NetSegment b)
+            {
+                return a.m_startNode == b.m_startNode ||
+                    a.m_startNode == b.m_endNode ||
+                    a.m_endNode == b.m_startNode ||
+                    a.m_endNode == b.m_endNode;
             }
 
             private static ushort GetSegmentId(NetNode node, int index)

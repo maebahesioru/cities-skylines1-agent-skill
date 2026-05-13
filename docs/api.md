@@ -166,6 +166,8 @@ Detected anomaly types:
 - `deadEndNearRoad`: a one-segment road endpoint is very close to another road segment, which often means the endpoint visually touches a road but did not create an intersection.
 - `deadEndRoad`: a normal road dead end. This is legal in CS1, but useful for agent-side design QA because unwanted frontage/service-road stubs often look like this.
 - `shortRoadStub`: a short road segment with a dead end, often left behind by failed frontage-road or service-road placement.
+- `overlappingRoadSegments`: two road segments run nearly on top of each other at the same height for a meaningful distance, which usually means a duplicate or accidental overlay.
+- `roadCrossingWithoutNode`: two road segments cross at nearly the same height without sharing a node, which usually means they visually overlap but are not a real intersection.
 
 Each anomaly includes the affected node or segment IDs plus world coordinates,
 so an agent can call `/commands/bulldoze` or add a connector road without using
