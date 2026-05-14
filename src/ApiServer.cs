@@ -199,6 +199,11 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return TransportCommands.BuildTransportLinesJson(limit); });
             }
 
+            if (request.Method == "GET" && request.Path == "/state/map-areas")
+            {
+                return RunOnGameThread(request, AreaCommands.BuildMapAreasJson);
+            }
+
             if (request.Method == "GET" && request.Path == "/prefabs/roads")
             {
                 return RunOnGameThread(request, GameState.BuildRoadPrefabsJson);
@@ -309,6 +314,12 @@ namespace SkylinesAgentBridge
             {
                 string body = request.Body;
                 return RunOnGameThread(request, delegate { return TransportCommands.AssignTransportLineDepot(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/unlock-map-areas")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return AreaCommands.UnlockMapAreas(body); });
             }
 
             if (request.Method == "POST" && request.Path == "/commands/batch")
