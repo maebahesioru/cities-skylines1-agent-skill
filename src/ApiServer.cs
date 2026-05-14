@@ -204,6 +204,11 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, AreaCommands.BuildMapAreasJson);
             }
 
+            if (request.Method == "GET" && request.Path == "/state/game-settings")
+            {
+                return RunOnGameThread(request, SettingsCommands.BuildGameSettingsJson);
+            }
+
             if (request.Method == "GET" && request.Path == "/prefabs/roads")
             {
                 return RunOnGameThread(request, GameState.BuildRoadPrefabsJson);
@@ -320,6 +325,12 @@ namespace SkylinesAgentBridge
             {
                 string body = request.Body;
                 return RunOnGameThread(request, delegate { return AreaCommands.UnlockMapAreas(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-autosave")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return SettingsCommands.SetAutoSave(body); });
             }
 
             if (request.Method == "POST" && request.Path == "/commands/batch")
