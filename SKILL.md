@@ -132,6 +132,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\capture-city-view.
 Invoke-RestMethod http://127.0.0.1:32123/state/captures
 ```
 
+If capture or info-view testing leaves the normal HUD hidden, restore the game UI:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/restore-ui
+```
+
 ## Known Gotchas
 
 - CS1 network crossings are not intersections unless a real node is created. If a pipe or road visually crosses another segment but does not connect, bulldoze and rebuild split segments with a shared endpoint.

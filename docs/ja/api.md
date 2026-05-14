@@ -365,6 +365,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\capture-city-view.ps
 Invoke-RestMethod http://127.0.0.1:32123/state/captures
 ```
 
+## POST /commands/restore-ui
+
+撮影、info view、カメラ検証のあとに通常HUDが非表示のまま残った場合、
+CS1 UI を通常表示へ戻します。info view を解除し、default tool へ戻し、
+main UI view と toolbar を再有効化して UI を更新します。
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/restore-ui
+```
+
 ## GET /state/transport-line-anomalies
 
 公共交通路線の切断や運行不能を路線単位で検知します。`lineNotConnected` の停留所ノード、未完成路線、停留所不足、車両が必要なのに出ていない路線を返します。車両数だけでは運行確認にならないため、路線を運行中と判断する前に使います。

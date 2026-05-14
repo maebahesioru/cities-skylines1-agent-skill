@@ -131,6 +131,7 @@ Command APIs:
 - `POST /commands/bulldoze`
 - `POST /commands/save`
 - `POST /commands/capture-view`
+- `POST /commands/restore-ui`
 - `POST /commands/set-simulation-speed`
 - `POST /commands/set-tax-rate`
 - `POST /commands/batch` optional convenience wrapper

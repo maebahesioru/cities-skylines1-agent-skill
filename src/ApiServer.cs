@@ -390,6 +390,11 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return CaptureCommands.CaptureView(body); });
             }
 
+            if (request.Method == "POST" && request.Path == "/commands/restore-ui")
+            {
+                return RunOnGameThread(request, UiCommands.RestoreUi);
+            }
+
             if (request.Method == "POST" && request.Path == "/commands/batch")
             {
                 string body = request.Body;
@@ -533,6 +538,11 @@ namespace SkylinesAgentBridge
             if (request.Path == "/commands/capture-view")
             {
                 return "Capture " + JsonUtil.GetString(body, "preset", "overview") + " view";
+            }
+
+            if (request.Path == "/commands/restore-ui")
+            {
+                return "Restore UI";
             }
 
             if (request.Path == "/commands/set-tax-rate")

@@ -512,6 +512,16 @@ Lists PNG files created by `/commands/capture-view`.
 Invoke-RestMethod http://127.0.0.1:32123/state/captures
 ```
 
+## POST /commands/restore-ui
+
+Restores the normal CS1 UI after capture, info-view, or camera testing leaves
+the HUD hidden. It clears info views, returns to the default tool, re-enables
+the main UI view and toolbar, and refreshes the UI.
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/restore-ui
+```
+
 ## GET /state/transport-line-anomalies
 
 Detects broken public transport lines at the line level. This includes
