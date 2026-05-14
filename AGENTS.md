@@ -22,19 +22,39 @@ This repository uses a lightweight Git Flow development model. Agents must follo
    git switch -c codex/feature/<short-topic>
    ```
 
-2. Make the requested changes on the feature branch.
-3. Keep commits focused and rollback-friendly.
-4. Run the relevant local validation before review.
-5. Push the branch and open a pull request targeting `develop`.
+2. Prefer a dedicated Git worktree when the main working tree is dirty, when another branch is already checked out, or when parallel agent work is useful.
+
+   ```powershell
+   git fetch --prune origin
+   git worktree add ..\<repo-name>-<short-topic> -b codex/feature/<short-topic> origin/develop
+   cd ..\<repo-name>-<short-topic>
+   ```
+
+3. Make the requested changes on the feature branch or in the dedicated worktree.
+4. Keep commits focused and rollback-friendly.
+5. Run the relevant local validation before review.
+6. Push the branch and open a pull request targeting `develop`.
 
    ```powershell
    git push -u origin codex/feature/<short-topic>
    gh pr create --base develop --head codex/feature/<short-topic>
    ```
 
-6. Request review before merging. Include human review when available and use an AI review pass from ChatGPT, Gemini, or both when useful.
-7. Apply review feedback on the same feature branch, re-run validation, and update the PR.
-8. Merge into `develop` only after the PR is approved and the validation checklist is complete.
+7. Request review before merging. Include human review when available and use an AI review pass from ChatGPT, Gemini, or both when useful.
+8. Apply review feedback on the same feature branch, re-run validation, and update the PR.
+9. Merge into `develop` only after the PR is approved and the validation checklist is complete.
+
+## Git Worktree Usage
+
+- Use `git worktree` to keep feature work isolated from the primary checkout, especially when local uncommitted work exists.
+- Create each worktree from `origin/develop` for normal feature work so it follows the same Git Flow base as a regular feature branch.
+- Keep one task per worktree and one feature branch per task.
+- Remove finished worktrees only after the PR is merged and the branch is no longer needed.
+
+   ```powershell
+   git worktree remove ..\<repo-name>-<short-topic>
+   git branch -d codex/feature/<short-topic>
+   ```
 
 ## Review Notes
 
