@@ -71,21 +71,9 @@ namespace SkylinesAgentBridge
                 {
                     result = SaveCommands.Save(command);
                 }
-                else if (type == "set-policy")
-                {
-                    result = DistrictCommands.SetPolicy(command);
-                }
                 else if (type == "set-budget")
                 {
                     result = BudgetCommands.SetBudget(command);
-                }
-                else if (type == "move-camera")
-                {
-                    result = CameraCommands.MoveCamera(command);
-                }
-                else if (type == "focus-building")
-                {
-                    result = CameraCommands.FocusOnBuilding(command);
                 }
                 else
                 {

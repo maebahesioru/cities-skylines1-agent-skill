@@ -1,67 +1,40 @@
 using System;
 using System.Text;
 using ColossalFramework;
-using static EconomyManager;
 
 namespace SkylinesAgentBridge
 {
     /// <summary>
-    /// Budget and finance APIs for Cities: Skylines 1.
-    /// Reads income/expense breakdown and loan information.
+    /// Budget APIs for Cities: Skylines 1.
     /// Uses EconomyManager.SetBudget for budget changes.
+    /// Verified against CS1 modding API.
     /// </summary>
     public static class BudgetCommands
     {
+        /// <summary>
+        /// Read basic economy state.
+        /// GET /state/budget
+        /// </summary>
         public static CommandResult BuildBudgetJson()
         {
             EconomyManager economy = Singleton<EconomyManager>.instance;
+            DistrictManager districtManager = DistrictManager.instance;
+
             StringBuilder json = new StringBuilder();
             json.Append("{\"ok\":true");
 
-            // Money
-            long cash = (long)economy.LastCashAmount;
-            json.Append(",\"money\":").Append(cash);
+            // Cash
+            json.Append(",\"cash\":" + ((long)Singleton<EconomyManager>.instance.LastCashAmount));
 
-            // Income breakdown — only expose what EconomyManager provides
-            json.Append(",\"income\":{");
-            json.Append("\"totalIncome\":").Append(economy.LastIncomeAmount);
-            json.Append("}");
-
-            // Expense
-            json.Append(",\"expenses\":{");
-            json.Append("\"totalExpense\":").Append(economy.LastExpenseAmount);
-            json.Append("}");
-
-            // Loans — economy.m_loans is Loan[] (field, verified from CSM)
-            json.Append(",\"loans\":[");
-            Loan[] loans = null;
-            try
+            // Population
+            if (districtManager != null)
             {
-                var loansField = typeof(EconomyManager).GetField("m_loans",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (loansField != null)
-                    loans = (Loan[])loansField.GetValue(economy);
-            }
-            catch { }
-
-            int loanCount = 0;
-            if (loans != null)
-            {
-                for (int i = 0; i < loans.Length; i++)
+                District district = districtManager.m_districts.m_buffer[0];
+                if ((district.m_flags & District.Flags.Created) != District.Flags.None)
                 {
-                    if (loans[i].m_amount == 0) continue;
-                    if (loanCount > 0) json.Append(",");
-                    json.Append("{\"index\":").Append(i);
-                    json.Append(",\"amount\":").Append(loans[i].m_amount);
-                    json.Append(",\"amountLeft\":").Append(loans[i].m_amountLeft);
-                    json.Append(",\"interestRate\":").Append(loans[i].m_interestRate);
-                    json.Append(",\"length\":").Append(loans[i].m_length);
-                    json.Append("}");
-                    loanCount++;
+                    json.Append(",\"population\":" + ((int)district.m_populationData.m_finalCount));
                 }
             }
-            json.Append("]");
-            json.Append(",\"loanCount\":").Append(loanCount);
 
             json.Append("}");
             return CommandResult.FromJson(json.ToString());
@@ -72,6 +45,7 @@ namespace SkylinesAgentBridge
         /// POST /commands/set-budget
         /// Body: { "service": "PoliceDepartment", "subService": "PoliceDepartment", "amount": 100, "night": false }
         /// amount is 50-150 (percentage)
+        /// service/subService use ItemClass.Service/SubService enum names
         /// </summary>
         public static CommandResult SetBudget(string body)
         {
@@ -112,27 +86,16 @@ namespace SkylinesAgentBridge
                 case "Education": return ItemClass.Service.Education;
                 case "Garbage": return ItemClass.Service.Garbage;
                 case "PublicTransport": return ItemClass.Service.PublicTransport;
-                default: return ItemClass.Service.None;
+                default:
+                    try { return (ItemClass.Service)System.Enum.Parse(typeof(ItemClass.Service), name); }
+                    catch { return ItemClass.Service.None; }
             }
         }
 
         private static ItemClass.SubService ParseSubService(string name)
         {
-            switch (name)
-            {
-                case "PoliceDepartment": return ItemClass.SubService.PoliceDepartment;
-                case "FireDepartment": return ItemClass.SubService.FireDepartment;
-                case "HealthCare": return ItemClass.SubService.HealthCare;
-                case "EducationElementary": return ItemClass.SubService.EducationElementary;
-                case "EducationHighSchool": return ItemClass.SubService.EducationHighSchool;
-                case "EducationUniversity": return ItemClass.SubService.EducationUniversity;
-                case "Garbage": return ItemClass.SubService.Garbage;
-                case "Road": return ItemClass.SubService.PublicTransportBus; // closest match
-                case "Electricity": return ItemClass.SubService.Electricity;
-                case "Water": return ItemClass.SubService.Water;
-                case "PublicTransport": return ItemClass.SubService.PublicTransportBus;
-                default: return ItemClass.SubService.None;
-            }
+            try { return (ItemClass.SubService)System.Enum.Parse(typeof(ItemClass.SubService), name); }
+            catch { return ItemClass.SubService.None; }
         }
     }
 }
