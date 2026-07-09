@@ -293,6 +293,103 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return BatchCommands.Execute(body); });
             }
 
+            // === NEW: Traffic & Transport ===
+            if (request.Method == "GET" && request.Path == "/state/traffic")
+            {
+                int limit = request.GetQueryInt("limit", 200);
+                return RunOnGameThread(request, delegate { return TrafficCommands.BuildTrafficJson(limit); });
+            }
+
+            // === NEW: Milestones & Unlocks ===
+            if (request.Method == "GET" && request.Path == "/state/milestones")
+            {
+                return RunOnGameThread(request, MilestoneCommands.BuildMilestoneJson);
+            }
+
+            // === NEW: Service Coverage & Citizens ===
+            if (request.Method == "GET" && request.Path == "/state/coverage")
+            {
+                return RunOnGameThread(request, CoverageCommands.BuildCoverageJson);
+            }
+
+            // === NEW: Environment & Resources ===
+            if (request.Method == "GET" && request.Path == "/state/environment")
+            {
+                return RunOnGameThread(request, EnvironmentCommands.BuildEnvironmentJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/flooding")
+            {
+                int limit = request.GetQueryInt("limit", 200);
+                return RunOnGameThread(request, delegate { return EnvironmentCommands.BuildFloodingJson(limit); });
+            }
+
+            // === NEW: Districts & Policies ===
+            if (request.Method == "GET" && request.Path == "/state/districts")
+            {
+                return RunOnGameThread(request, DistrictCommands.BuildDistrictsJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-policy")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return DistrictCommands.SetPolicy(body); });
+            }
+
+            // === NEW: Budget ===
+            if (request.Method == "GET" && request.Path == "/state/budget")
+            {
+                return RunOnGameThread(request, BudgetCommands.BuildBudgetJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-budget")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return BudgetCommands.SetBudget(body); });
+            }
+
+            // === NEW: Camera Control ===
+            if (request.Method == "GET" && request.Path == "/state/camera")
+            {
+                return RunOnGameThread(request, CameraCommands.GetCameraState);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/move-camera")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return CameraCommands.MoveCamera(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/focus-building")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return CameraCommands.FocusOnBuilding(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-zoom")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return CameraCommands.SetZoom(body); });
+            }
+
+            // === NEW: Game Management ===
+            if (request.Method == "GET" && request.Path == "/state/maps")
+            {
+                return RunOnGameThread(request, GameCommands.ListMaps);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/load-save")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return GameCommands.LoadSave(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/new-game")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return GameCommands.NewGame(body); });
+            }
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -408,6 +505,27 @@ namespace SkylinesAgentBridge
             {
                 return "Run batch commands";
             }
+
+            if (request.Method == "GET")
+            {
+                if (request.Path == "/state/traffic") return "Read traffic data";
+                if (request.Path == "/state/milestones") return "Read milestones";
+                if (request.Path == "/state/coverage") return "Read service coverage";
+                if (request.Path == "/state/environment") return "Read environment data";
+                if (request.Path == "/state/flooding") return "Inspect flooding";
+                if (request.Path == "/state/districts") return "Read districts";
+                if (request.Path == "/state/budget") return "Read budget";
+                if (request.Path == "/state/camera") return "Read camera state";
+                if (request.Path == "/state/maps") return "List maps";
+            }
+
+            if (request.Path == "/commands/set-policy") return "Set district policy";
+            if (request.Path == "/commands/set-budget") return "Set budget";
+            if (request.Path == "/commands/move-camera") return "Move camera";
+            if (request.Path == "/commands/focus-building") return "Focus on building";
+            if (request.Path == "/commands/set-zoom") return "Set zoom";
+            if (request.Path == "/commands/load-save") return "Load save";
+            if (request.Path == "/commands/new-game") return "New game";
 
             return request.Method + " " + request.Path;
         }

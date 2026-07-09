@@ -58,6 +58,12 @@ Invoke-RestMethod "http://127.0.0.1:32123/state/zone-anomalies?limit=200&include
 Invoke-RestMethod "http://127.0.0.1:32123/state/facilities?limit=500"
 Invoke-RestMethod "http://127.0.0.1:32123/state/growables?limit=500"
 Invoke-RestMethod "http://127.0.0.1:32123/state/networks?limit=1000&service=Road"
+Invoke-RestMethod "http://127.0.0.1:32123/state/traffic?limit=200"
+Invoke-RestMethod "http://127.0.0.1:32123/state/milestones"
+Invoke-RestMethod "http://127.0.0.1:32123/state/coverage"
+Invoke-RestMethod "http://127.0.0.1:32123/state/environment"
+Invoke-RestMethod "http://127.0.0.1:32123/state/districts"
+Invoke-RestMethod "http://127.0.0.1:32123/state/budget"
 ```
 
 Use `includeMapObjects=true` on `/state/facilities` only when raw helper objects such as pipe junctions are needed.
@@ -118,6 +124,84 @@ Save and verify:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\save-city.ps1 -Name AgentAutoSave-clean
 Invoke-RestMethod http://127.0.0.1:32123/state/saves
+```
+
+## Extended Commands (v0.4.0)
+
+### Traffic
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:32123/state/traffic?limit=200"
+```
+
+Use traffic density data to identify congested road segments. High `trafficDensity` (>0.7) segments need upgrading or alternative routes.
+
+### Milestones & Unlocks
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:32123/state/milestones
+```
+
+Check `unlockedServices` before placing buildings to avoid attempting to build locked prefabs. Use `currentMilestoneIndex` to decide next expansion goals.
+
+### Service Coverage & Citizens
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:32123/state/coverage
+```
+
+Monitor `crimeRate`, `sickCount`, `deadCount`, `garbageAccumulation` to decide which service buildings to place. Check `averageWellbeing` and `averageEducation` for quality-of-life decisions.
+
+### Environment & Resources
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:32123/state/environment
+Invoke-RestMethod "http://127.0.0.1:32123/state/flooding?limit=200"
+```
+
+Use `naturalResources` to place industries near resource deposits. Check `floodableAreaPercent` and `/state/flooding` before placing water-sensitive buildings.
+
+### Budget Management
+
+```powershell
+$body = @{ service = "PoliceDepartment"; amount = 120 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/set-budget -Body $body -ContentType "application/json"
+```
+
+Check `/state/budget` for money, income/expense breakdown, and loans before adjusting budgets.
+
+### District Policies
+
+```powershell
+$body = @{ districtId = 0; policy = "SmokeDetector"; active = $true } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/set-policy -Body $body -ContentType "application/json"
+```
+
+### Camera Control
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:32123/state/camera
+
+$body = @{ position = @{ x = 500; z = 300 }; instant = $false } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/move-camera -Body $body -ContentType "application/json"
+
+$body = @{ id = 123 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/focus-building -Body $body -ContentType "application/json"
+
+$body = @{ size = 150.0 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/set-zoom -Body $body -ContentType "application/json"
+```
+
+### Game Management
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:32123/state/maps
+
+$body = @{ name = "MyCity" } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/load-save -Body $body -ContentType "application/json"
+
+$body = @{ mapName = "Green Plains" } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/new-game -Body $body -ContentType "application/json"
 ```
 
 ## Known Gotchas

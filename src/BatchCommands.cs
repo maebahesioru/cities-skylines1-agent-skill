@@ -39,6 +39,54 @@ namespace SkylinesAgentBridge
                 {
                     result = ZoneCommands.SetZone(command);
                 }
+                else if (type == "repair-zones-to-growables")
+                {
+                    result = ZoneCommands.RepairZonesToGrowables(command);
+                }
+                else if (type == "repair-zone-clusters")
+                {
+                    result = ZoneCommands.RepairZoneClusters(command);
+                }
+                else if (type == "place-building")
+                {
+                    result = BuildingCommands.PlaceBuilding(command);
+                }
+                else if (type == "move-building")
+                {
+                    result = BuildingCommands.MoveBuilding(command);
+                }
+                else if (type == "bulldoze")
+                {
+                    result = BulldozeCommands.Bulldoze(command);
+                }
+                else if (type == "set-simulation-speed")
+                {
+                    result = SimulationCommands.SetSimulationSpeed(command);
+                }
+                else if (type == "set-tax-rate")
+                {
+                    result = EconomyCommands.SetTaxRate(command);
+                }
+                else if (type == "save")
+                {
+                    result = SaveCommands.Save(command);
+                }
+                else if (type == "set-policy")
+                {
+                    result = DistrictCommands.SetPolicy(command);
+                }
+                else if (type == "set-budget")
+                {
+                    result = BudgetCommands.SetBudget(command);
+                }
+                else if (type == "move-camera")
+                {
+                    result = CameraCommands.MoveCamera(command);
+                }
+                else if (type == "focus-building")
+                {
+                    result = CameraCommands.FocusOnBuilding(command);
+                }
                 else
                 {
                     result = CommandResult.Fail("Unsupported command type: " + type);
