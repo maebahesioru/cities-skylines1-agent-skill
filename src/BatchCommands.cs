@@ -75,6 +75,10 @@ namespace SkylinesAgentBridge
                 {
                     result = BudgetCommands.SetBudget(command);
                 }
+                else if (type == "set-policy")
+                {
+                    result = DistrictCommands.SetPolicy(command);
+                }
                 else
                 {
                     result = CommandResult.Fail("Unsupported command type: " + type);

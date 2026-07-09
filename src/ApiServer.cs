@@ -305,6 +305,30 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return BudgetCommands.SetBudget(body); });
             }
 
+            // === NEW: Coverage ===
+            if (request.Method == "GET" && request.Path == "/state/coverage")
+            {
+                return RunOnGameThread(request, CoverageCommands.BuildCoverageJson);
+            }
+
+            // === NEW: Districts ===
+            if (request.Method == "GET" && request.Path == "/state/districts")
+            {
+                return RunOnGameThread(request, DistrictCommands.BuildDistrictsJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-policy")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return DistrictCommands.SetPolicy(body); });
+            }
+
+            // === NEW: Environment ===
+            if (request.Method == "GET" && request.Path == "/state/environment")
+            {
+                return RunOnGameThread(request, EnvironmentCommands.BuildEnvironmentJson);
+            }
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -424,9 +448,13 @@ namespace SkylinesAgentBridge
             if (request.Method == "GET")
             {
                 if (request.Path == "/state/budget") return "Read budget";
+                if (request.Path == "/state/coverage") return "Read coverage";
+                if (request.Path == "/state/districts") return "Read districts";
+                if (request.Path == "/state/environment") return "Read environment";
             }
 
             if (request.Path == "/commands/set-budget") return "Set budget";
+            if (request.Path == "/commands/set-policy") return "Set policy";
 
             return request.Method + " " + request.Path;
         }
