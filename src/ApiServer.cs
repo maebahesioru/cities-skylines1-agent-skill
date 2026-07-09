@@ -477,6 +477,60 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return ScreenshotCommands.CaptureScreenshot(body); });
             }
 
+            // === NEW: GameArea ===
+            if (request.Method == "GET" && request.Path == "/state/areas")
+            {
+                return RunOnGameThread(request, GameAreaCommands.BuildAreasJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/unlock-area")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return GameAreaCommands.UnlockArea(body); });
+            }
+
+            // === NEW: Trees ===
+            if (request.Method == "GET" && request.Path == "/state/trees")
+            {
+                return RunOnGameThread(request, TreeCommands.BuildTreesJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/plant-tree")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TreeCommands.PlantTree(body); });
+            }
+
+            // === NEW: Props ===
+            if (request.Method == "GET" && request.Path == "/state/props")
+            {
+                return RunOnGameThread(request, PropCommands.BuildPropsJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/place-prop")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return PropCommands.PlaceProp(body); });
+            }
+
+            // === NEW: Weather ===
+            if (request.Method == "GET" && request.Path == "/state/weather")
+            {
+                return RunOnGameThread(request, WeatherCommands.BuildWeatherJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/lightning-strike")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return WeatherCommands.LightningStrike(body); });
+            }
+
+            // === NEW: Chirps ===
+            if (request.Method == "GET" && request.Path == "/state/chirp-count")
+            {
+                return RunOnGameThread(request, ChirpCommands.GetChirpCount);
+            }
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -615,6 +669,10 @@ namespace SkylinesAgentBridge
             if (request.Path == "/commands/start-random-disaster") return "Start random disaster";
             if (request.Path == "/commands/evacuate") return "Evacuate city";
             if (request.Path == "/commands/screenshot") return "Take screenshot";
+            if (request.Path == "/commands/unlock-area") return "Unlock area";
+            if (request.Path == "/commands/plant-tree") return "Plant tree";
+            if (request.Path == "/commands/place-prop") return "Place prop";
+            if (request.Path == "/commands/lightning-strike") return "Lightning strike";
 
             if (request.Method == "GET")
             {
@@ -627,6 +685,10 @@ namespace SkylinesAgentBridge
                 if (request.Path == "/state/events") return "Read events";
                 if (request.Path == "/state/transfers") return "Read transfers";
                 if (request.Path == "/state/statistics") return "Read statistics";
+                if (request.Path == "/state/areas") return "Read areas";
+                if (request.Path == "/state/trees") return "Read trees";
+                if (request.Path == "/state/props") return "Read props";
+                if (request.Path == "/state/weather") return "Read weather";
             }
 
             return request.Method + " " + request.Path;
