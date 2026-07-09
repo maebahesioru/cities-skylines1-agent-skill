@@ -293,6 +293,13 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return BatchCommands.Execute(body); });
             }
 
+            // === NEW: Traffic ===
+            if (request.Method == "GET" && request.Path == "/state/traffic")
+            {
+                int limit = request.GetQueryInt("limit", 200);
+                return RunOnGameThread(request, delegate { return TrafficCommands.BuildTrafficJson(limit); });
+            }
+
             // === NEW: Budget ===
             if (request.Method == "GET" && request.Path == "/state/budget")
             {
@@ -327,6 +334,36 @@ namespace SkylinesAgentBridge
             if (request.Method == "GET" && request.Path == "/state/environment")
             {
                 return RunOnGameThread(request, EnvironmentCommands.BuildEnvironmentJson);
+            }
+
+            // === NEW: Milestones ===
+            if (request.Method == "GET" && request.Path == "/state/milestones")
+            {
+                return RunOnGameThread(request, MilestoneCommands.BuildMilestoneJson);
+            }
+
+            // === NEW: Camera ===
+            if (request.Method == "GET" && request.Path == "/state/camera")
+            {
+                return RunOnGameThread(request, CameraCommands.GetCameraState);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/move-camera")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return CameraCommands.MoveCamera(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/focus-building")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return CameraCommands.FocusOnBuilding(body); });
+            }
+
+            // === NEW: Game ===
+            if (request.Method == "GET" && request.Path == "/state/maps")
+            {
+                return RunOnGameThread(request, GameCommands.ListMaps);
             }
 
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
@@ -447,6 +484,7 @@ namespace SkylinesAgentBridge
 
             if (request.Method == "GET")
             {
+                if (request.Path == "/state/traffic") return "Read traffic data";
                 if (request.Path == "/state/budget") return "Read budget";
                 if (request.Path == "/state/coverage") return "Read coverage";
                 if (request.Path == "/state/districts") return "Read districts";
