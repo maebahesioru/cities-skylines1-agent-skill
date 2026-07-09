@@ -531,145 +531,27 @@ Supported command types:
 *   `set-simulation-speed`
 *   `set-tax-rate`
 *   `save`
-*   `set-policy`
 *   `set-budget`
-*   `move-camera`
-*   `focus-building`
 
-## New Endpoints (v0.4.0)
-
-[](#new-endpoints)
-
-### GET /state/traffic
-
-Returns vehicle counts, transport lines, road segment congestion, and transport stop counts.
-
-Invoke-RestMethod "http://127.0.0.1:32123/state/traffic?limit=200"
-
-Response includes `vehicles` (total, parked, moving, byType), `transportLines` (id, name, passengers, vehicleCount), `roadCongestion` (segmentId, trafficDensity), and `transportStops` (bus, metro, train, tram, ship, plane).
-
-### GET /state/milestones
-
-Returns current milestone index, all milestone requirements, unlock status, and unlocked service/subservice pairs.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/milestones
-
-### GET /state/coverage
-
-Returns service coverage metrics, citizen demographics, land value, crime, garbage, health, education, wealth, and wellbeing statistics.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/coverage
-
-Response includes `landValue`, `serviceCoverage` (fireHazard, crimeRate, garbage, noise, sickCount, population, averageHealth, averageEducation, averageWealth), and `citizenStats` (age distribution, employment, education, wealth, averageWellbeing).
-
-### GET /state/environment
-
-Returns pollution data, water source counts, natural resource availability, terrain height range, water level, and floodable area percentage.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/environment
-
-### GET /state/flooding
-
-Returns buildings that are below water level (flooding risk).
-
-Invoke-RestMethod "http://127.0.0.1:32123/state/flooding?limit=200"
-
-### GET /state/districts
-
-Returns all districts with name, population, active policies, and area.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/districts
+## Budget API (v0.4.0)
 
 ### GET /state/budget
 
-Returns money, income breakdown (tax types), expense breakdown (by service), and loan information.
+Returns cash balance and population.
 
 Invoke-RestMethod http://127.0.0.1:32123/state/budget
 
-### GET /state/camera
-
-Returns current camera position, angle, and zoom level.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/camera
-
-### GET /state/maps
-
-Lists available maps for new games.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/maps
-
-### POST /commands/set-policy
-
-Toggle a district policy.
-
-Request:
-
-{
-  "districtId": 0,
-  "policy": "SmokeDetector",
-  "active": true
-}
-
-Supported policies: `SmokeDetector`, `Recycling`, `PetBan`, `SmokingBan`, `EncourageBiking`, `FreePublicTransport`, `HighTicketPrice`, `PreferBuses`, `WaterUsage`, `ElectricityUsage`, `OnlyElectricCars`, `HeavyTrafficBan`.
-
 ### POST /commands/set-budget
 
-Set service budget percentage (50-150).
+Set service budget percentage (50-150) using EconomyManager.SetBudget.
 
 Request:
 
 {
   "service": "PoliceDepartment",
-  "amount": 120
+  "subService": "PoliceDepartment",
+  "amount": 120,
+  "night": false
 }
 
-### POST /commands/move-camera
-
-Move camera to a world position.
-
-Request:
-
-{
-  "position": { "x": 500, "z": 300, "y": 400 },
-  "instant": false
-}
-
-### POST /commands/focus-building
-
-Focus camera on a specific building by ID. Zooms to a top-down view of the building.
-
-Request:
-
-{
-  "id": 123
-}
-
-### POST /commands/set-zoom
-
-Set camera zoom level.
-
-Request:
-
-{
-  "size": 150.0
-}
-
-### POST /commands/load-save
-
-Load a saved game by name.
-
-Request:
-
-{
-  "name": "MyCity"
-}
-
-### POST /commands/new-game
-
-Start a new game on a specific map.
-
-Request:
-
-{
-  "mapName": "Green Plains"
-}
+`service` and `subService` use `ItemClass.Service`/`ItemClass.SubService` enum names.
