@@ -360,10 +360,44 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return CameraCommands.FocusOnBuilding(body); });
             }
 
+            if (request.Method == "POST" && request.Path == "/commands/clear-camera-target")
+            {
+                return RunOnGameThread(request, CameraCommands.ClearCameraTarget);
+            }
+
+            // === NEW: Milestones ===
+            if (request.Method == "GET" && request.Path == "/state/milestones")
+            {
+                return RunOnGameThread(request, MilestoneCommands.BuildMilestoneJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/unlock-milestone")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return MilestoneCommands.UnlockMilestone(body); });
+            }
+
             // === NEW: Game ===
             if (request.Method == "GET" && request.Path == "/state/maps")
             {
                 return RunOnGameThread(request, GameCommands.ListMaps);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/new-game")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return GameCommands.NewGame(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/load-game")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return GameCommands.LoadGame(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/quit-to-menu")
+            {
+                return RunOnGameThread(request, GameCommands.QuitToMenu);
             }
 
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
