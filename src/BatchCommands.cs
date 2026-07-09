@@ -79,6 +79,38 @@ namespace SkylinesAgentBridge
                 {
                     result = DistrictCommands.SetPolicy(command);
                 }
+                else if (type == "create-disaster")
+                {
+                    result = DisasterCommands.CreateDisaster(command);
+                }
+                else if (type == "evacuate")
+                {
+                    result = DisasterCommands.EvacuateAll();
+                }
+                else if (type == "start-random-disaster")
+                {
+                    result = DisasterCommands.StartRandomDisaster();
+                }
+                else if (type == "screenshot")
+                {
+                    result = ScreenshotCommands.CaptureScreenshot(command);
+                }
+                else if (type == "move-camera")
+                {
+                    result = CameraCommands.MoveCamera(command);
+                }
+                else if (type == "focus-building")
+                {
+                    result = CameraCommands.FocusOnBuilding(command);
+                }
+                else if (type == "new-game")
+                {
+                    result = GameCommands.NewGame(command);
+                }
+                else if (type == "load-game")
+                {
+                    result = GameCommands.LoadGame(command);
+                }
                 else
                 {
                     result = CommandResult.Fail("Unsupported command type: " + type);

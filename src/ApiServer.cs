@@ -400,6 +400,83 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, GameCommands.QuitToMenu);
             }
 
+            // === NEW: Immaterial Resources ===
+            if (request.Method == "GET" && request.Path == "/state/immaterial-resources")
+            {
+                return RunOnGameThread(request, ImmaterialResourceCommands.BuildResourceJson);
+            }
+
+            // === NEW: Electricity ===
+            if (request.Method == "GET" && request.Path == "/state/electricity")
+            {
+                return RunOnGameThread(request, ElectricityCommands.BuildElectricityJson);
+            }
+
+            // === NEW: Water ===
+            if (request.Method == "GET" && request.Path == "/state/water")
+            {
+                return RunOnGameThread(request, WaterCommands.BuildWaterJson);
+            }
+
+            // === NEW: Disasters ===
+            if (request.Method == "GET" && request.Path == "/state/disasters")
+            {
+                return RunOnGameThread(request, DisasterCommands.BuildDisastersJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/create-disaster")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return DisasterCommands.CreateDisaster(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/start-random-disaster")
+            {
+                return RunOnGameThread(request, DisasterCommands.StartRandomDisaster);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/evacuate")
+            {
+                return RunOnGameThread(request, DisasterCommands.EvacuateAll);
+            }
+
+            // === NEW: Citizens ===
+            if (request.Method == "GET" && request.Path == "/state/citizens")
+            {
+                return RunOnGameThread(request, CitizenCommands.BuildCitizensJson);
+            }
+
+            // === NEW: Loans ===
+            if (request.Method == "GET" && request.Path == "/state/loans")
+            {
+                return RunOnGameThread(request, LoanCommands.BuildLoansJson);
+            }
+
+            // === NEW: Events ===
+            if (request.Method == "GET" && request.Path == "/state/events")
+            {
+                return RunOnGameThread(request, EventCommands.BuildEventsJson);
+            }
+
+            // === NEW: Transfers ===
+            if (request.Method == "GET" && request.Path == "/state/transfers")
+            {
+                return RunOnGameThread(request, TransferCommands.BuildTransfersJson);
+            }
+
+            // === NEW: Statistics ===
+            if (request.Method == "GET" && request.Path == "/state/statistics")
+            {
+                return RunOnGameThread(request, StatisticsCommands.BuildStatisticsJson);
+            }
+
+            // === NEW: Screenshot ===
+            if (request.Method == "POST" && request.Path == "/commands/screenshot")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return ScreenshotCommands.CaptureScreenshot(body); });
+            }
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -527,6 +604,30 @@ namespace SkylinesAgentBridge
 
             if (request.Path == "/commands/set-budget") return "Set budget";
             if (request.Path == "/commands/set-policy") return "Set policy";
+            if (request.Path == "/commands/move-camera") return "Move camera";
+            if (request.Path == "/commands/focus-building") return "Focus building";
+            if (request.Path == "/commands/clear-camera-target") return "Clear camera target";
+            if (request.Path == "/commands/unlock-milestone") return "Unlock milestone";
+            if (request.Path == "/commands/new-game") return "New game";
+            if (request.Path == "/commands/load-game") return "Load game";
+            if (request.Path == "/commands/quit-to-menu") return "Quit to menu";
+            if (request.Path == "/commands/create-disaster") return "Create disaster";
+            if (request.Path == "/commands/start-random-disaster") return "Start random disaster";
+            if (request.Path == "/commands/evacuate") return "Evacuate city";
+            if (request.Path == "/commands/screenshot") return "Take screenshot";
+
+            if (request.Method == "GET")
+            {
+                if (request.Path == "/state/immaterial-resources") return "Read immaterial resources";
+                if (request.Path == "/state/electricity") return "Read electricity";
+                if (request.Path == "/state/water") return "Read water";
+                if (request.Path == "/state/disasters") return "Read disasters";
+                if (request.Path == "/state/citizens") return "Read citizens";
+                if (request.Path == "/state/loans") return "Read loans";
+                if (request.Path == "/state/events") return "Read events";
+                if (request.Path == "/state/transfers") return "Read transfers";
+                if (request.Path == "/state/statistics") return "Read statistics";
+            }
 
             return request.Method + " " + request.Path;
         }
