@@ -21,16 +21,14 @@ namespace SkylinesAgentBridge
             json.Append(",\"unitCount\":" + cm.m_unitCount);
             json.Append(",\"instanceCount\":" + cm.m_instanceCount);
 
-            // Sample statistics from citizen buffer
             int sampled = 0;
             int children = 0, teens = 0, youngAdults = 0, adults = 0, seniors = 0;
             int uneducated = 0, educated = 0, wellEducated = 0, highlyEducated = 0;
             int sick = 0, dead = 0;
             int employed = 0, unemployed = 0;
-            int happy = 0, unhappy = 0;
 
             Citizen[] buffer = cm.m_citizens?.m_buffer;
-            int size = cm.m_citizens?.m_size ?? 0;
+            int size = (int)(cm.m_citizens?.m_size ?? 0u);
 
             if (buffer != null)
             {
@@ -41,7 +39,7 @@ namespace SkylinesAgentBridge
                     sampled++;
 
                     // Age group
-                    uint age = c.Age;
+                    int age = (int)c.Age;
                     if (age < 30) children++;
                     else if (age < 60) teens++;
                     else if (age < 120) youngAdults++;
@@ -63,7 +61,7 @@ namespace SkylinesAgentBridge
 
                     // Employment
                     if (c.m_workBuilding != 0) employed++;
-                    else if (age >= 120 && age < 240) unemployed++; // Adult working age
+                    else if (age >= 120 && age < 240) unemployed++;
                 }
             }
 
@@ -88,10 +86,9 @@ namespace SkylinesAgentBridge
             json.Append(",\"employment\":{");
             json.Append("\"employed\":" + employed);
             json.Append(",\"unemployed\":" + unemployed);
-            json.Append(",\"rate\":" + JsonUtil.Number(sampled > 0 ? (double)employed / (employed + unemployed + 0.001) : 0));
+            json.Append(",\"rate\":" + JsonUtil.Number((float)(sampled > 0 ? (double)employed / (employed + unemployed + 0.001) : 0)));
             json.Append("}");
 
-            // Happiness from districts
             DistrictManager dm = DistrictManager.instance;
             if (dm != null && dm.m_districts.m_size > 0)
             {

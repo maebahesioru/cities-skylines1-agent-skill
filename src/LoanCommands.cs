@@ -80,7 +80,7 @@ namespace SkylinesAgentBridge
                             json.Append("\"id\":" + i);
                             json.Append(",\"amount\":" + amount);
                             if (fInterest != null)
-                                json.Append(",\"interestRate\":" + JsonUtil.Number((int)fInterest.GetValue(loan) / 100.0));
+                                json.Append(",\"interestRate\":" + JsonUtil.Number((float)((int)fInterest.GetValue(loan) / 100.0)));
                             if (fWeekLength != null)
                                 json.Append(",\"weeksLeft\":" + (int)fWeekLength.GetValue(loan));
                             json.Append("}");

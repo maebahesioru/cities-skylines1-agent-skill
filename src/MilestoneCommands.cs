@@ -39,7 +39,7 @@ namespace SkylinesAgentBridge
                 HashSet<string> unlockedNames = new HashSet<string>();
                 try
                 {
-                    MilestonesWrapper mw = MilestonesWrapper.instance;
+                    MilestonesWrapper mw = um.m_MilestonesWrapper;
                     if (mw != null)
                     {
                         string[] unlocked = mw.EnumerateMilestones();
@@ -93,7 +93,6 @@ namespace SkylinesAgentBridge
                 json.Append("\"population\":" + ((int)d.m_populationData.m_finalCount));
                 json.Append(",\"happiness\":" + d.m_finalHappiness);
                 json.Append(",\"crimeRate\":" + d.m_finalCrimeRate);
-                json.Append(",\"landValue\":" + d.m_finalLandValue);
                 json.Append("}");
             }
 
@@ -112,7 +111,9 @@ namespace SkylinesAgentBridge
             if (string.IsNullOrEmpty(name))
                 return CommandResult.Fail("Milestone name required.");
 
-            MilestonesWrapper mw = MilestonesWrapper.instance;
+            UnlockManager um2 = UnlockManager.instance;
+            if (um2 == null) return CommandResult.Fail("UnlockManager not found.");
+            MilestonesWrapper mw = um2.m_MilestonesWrapper;
             if (mw == null) return CommandResult.Fail("MilestonesWrapper not found.");
 
             try

@@ -4,18 +4,12 @@ using ColossalFramework;
 
 namespace SkylinesAgentBridge
 {
-    /// <summary>
-    /// Water, sewage, and heating (Snowfall) state.
-    /// Uses WaterManager.instance fields verified via monodis.
-    /// </summary>
     public static class WaterCommands
     {
         public static CommandResult BuildWaterJson()
         {
             WaterManager wm = WaterManager.instance;
             if (wm == null) return CommandResult.Fail("WaterManager not found.");
-
-            BuildingManager bm = BuildingManager.instance;
 
             StringBuilder json = new StringBuilder();
             json.Append("{\"ok\":true");
@@ -30,17 +24,15 @@ namespace SkylinesAgentBridge
                 var fh = typeof(WaterManager).GetField("m_heatingPulseGroupCount",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-                json.Append(",\"waterPulseGroups\":" + (fw != null ? ((int)fw.GetValue(wm)).ToString() : "0"));
-                json.Append(",\"sewagePulseGroups\":" + (fs != null ? ((int)fs.GetValue(wm)).ToString() : "0"));
-                json.Append(",\"heatingPulseGroups\":" + (fh != null ? ((int)fh.GetValue(wm)).ToString() : "0"));
+                if (fw != null) json.Append(",\"waterPulseGroups\":" + (int)fw.GetValue(wm));
+                if (fs != null) json.Append(",\"sewagePulseGroups\":" + (int)fs.GetValue(wm));
+                if (fh != null) json.Append(",\"heatingPulseGroups\":" + (int)fh.GetValue(wm));
             }
             catch { }
 
             // Count buildings with water/sewage problems
-            int waterProblems = 0;
-            int sewageProblems = 0;
-            int totalBuildings = 0;
-
+            BuildingManager bm = BuildingManager.instance;
+            int waterProblems = 0, sewageProblems = 0, totalBuildings = 0;
             if (bm != null)
             {
                 for (ushort i = 1; i < bm.m_buildings.m_size && totalBuildings < 5000; i++)
@@ -48,18 +40,19 @@ namespace SkylinesAgentBridge
                     Building b = bm.m_buildings.m_buffer[i];
                     if ((b.m_flags & Building.Flags.Created) == Building.Flags.None) continue;
                     totalBuildings++;
-
-                    if ((b.m_problems & Notification.Problem.Water) != Notification.Problem.None)
-                        waterProblems++;
-                    if ((b.m_problems & Notification.Problem.Sewage) != Notification.Problem.None)
-                        sewageProblems++;
+                    if (!b.m_problems.IsNone)
+                    {
+                        string ps = b.m_problems.ToString();
+                        if (ps.IndexOf("Water", StringComparison.OrdinalIgnoreCase) >= 0) waterProblems++;
+                        if (ps.IndexOf("ewage", StringComparison.OrdinalIgnoreCase) >= 0) sewageProblems++;
+                    }
                 }
             }
 
             json.Append(",\"buildings\":{");
-            json.Append("\"waterProblems\":" + waterProblems);
+            json.Append("\"total\":" + totalBuildings);
+            json.Append(",\"waterProblems\":" + waterProblems);
             json.Append(",\"sewageProblems\":" + sewageProblems);
-            json.Append(",\"total\":" + totalBuildings);
             json.Append("}");
 
             json.Append("}");

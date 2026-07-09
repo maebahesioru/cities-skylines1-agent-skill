@@ -31,8 +31,9 @@ namespace SkylinesAgentBridge
             json.Append(",\"size\":" + JsonUtil.Number(controller.m_currentSize));
             json.Append(",\"height\":" + JsonUtil.Number(controller.m_currentHeight));
             json.Append(",\"freeCamera\":" + JsonUtil.Bool(controller.m_freeCamera));
-            json.Append(",\"hasTarget\":" + JsonUtil.Bool(controller.HasTarget()));
-            if (controller.HasTarget())
+            bool hasTarget = (target.Index != 0);
+            json.Append(",\"hasTarget\":" + JsonUtil.Bool(hasTarget));
+            if (hasTarget)
             {
                 json.Append(",\"targetInstance\":{\"type\":\"" + JsonUtil.Escape(target.Type.ToString()) + "\",\"index\":" + target.Index + "}");
             }
@@ -154,7 +155,8 @@ namespace SkylinesAgentBridge
             CameraController controller = UnityEngine.Object.FindObjectOfType<CameraController>();
             if (controller == null) return CommandResult.Fail("CameraController not found.");
 
-            if (controller.HasTarget())
+            InstanceID currentTarget = controller.GetTarget();
+            if (currentTarget.Index != 0)
             {
                 controller.ClearTarget();
                 return CommandResult.FromJson("{\"ok\":true,\"message\":\"Camera target cleared.\"}");

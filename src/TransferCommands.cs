@@ -21,17 +21,6 @@ namespace SkylinesAgentBridge
             // TransferManager fields via reflection
             try
             {
-                var fIncomingSize = typeof(TransferManager).GetField("m_incomingCount",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var fOutgoingSize = typeof(TransferManager).GetField("m_outgoingCount",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var fIncomingAmount = typeof(TransferManager).GetField("m_incomingAmount",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var fOutgoingAmount = typeof(TransferManager).GetField("m_outgoingAmount",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-                // Try getting counts from TransferManager
-                // Alternative: count transfer offers
                 var fInOffer = typeof(TransferManager).GetField("m_incomingOffers",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 var fOutOffer = typeof(TransferManager).GetField("m_outgoingOffers",

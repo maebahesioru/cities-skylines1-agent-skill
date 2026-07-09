@@ -60,7 +60,7 @@ namespace SkylinesAgentBridge
                 UnityEngine.Object.Destroy(rt);
                 UnityEngine.Object.Destroy(screenshot);
 
-                FileInfo fi = new FileInfo(fullPath);
+                System.IO.FileInfo fi = new System.IO.FileInfo(fullPath);
                 return CommandResult.FromJson("{\"ok\":true,\"file\":\"" + JsonUtil.Escape(filename) +
                     "\",\"path\":\"" + JsonUtil.Escape(fullPath) + "\",\"size\":" + fi.Length +
                     ",\"width\":" + width + ",\"height\":" + height + "}");
