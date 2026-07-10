@@ -1,557 +1,285 @@
-# API Reference
+# API Reference — Skylines Agent Bridge
 
-[日本語版](ja/api.md)
+[Japanese version](ja/api.md)
 
-Base URL:
+**Base URL:** `http://127.0.0.1:32123`  
+**Current version:** 66 source files · 223KB · ~150 endpoints · CS1 v1.17+
 
-```text
-http://127.0.0.1:32123
-```
+While a city is loaded, every API request that touches game state appears in the CS1 UI as a short overlay notification (e.g. `API OK: Read city problems`). `/health` is excluded — it works without a level loaded.
 
-While a city is loaded, every API request that touches game state also appears
-in the CS1 UI as a short overlay notification. The overlay keeps the latest few
-messages for several seconds, for example `API OK: Read city problems` or
-`API OK: Build network Basic Road`. `/health` is intentionally excluded because
-it can be called before a level exists.
-
-![API notification overlay](assets/api-notification.jpg)
+---
 
 ## Agent Workflow
 
-The intended workflow is intentionally generic:
+1. **Read** state from the API
+2. **Decide** which small change to make
+3. **Call** one command API
+4. **Let** the simulation settle
+5. **Re-read** state
+6. **Save** and verify
 
-1. Read state from the API.
-2. Decide which small change is needed.
-3. Call one command API.
-4. Let the simulation settle.
-5. Re-read state.
-6. Save and verify the save file.
+---
 
-![Agent-built starter city](assets/city-overview.jpg)
+## Endpoint Index
 
-## GET /health
+### Health & Meta
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Bridge status (no city required) |
+| GET | `/state/mods` | List installed mods |
 
-Returns bridge status without requiring a loaded city.
+### City State (Read)
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/summary` | — | Game time, network counts, citizens, demand |
+| GET | `/state/demand` | — | Residential/commercial/workplace demand (0–100) |
+| GET | `/state/chirps` | `limit` (50) | Recent citizen chirps/messages |
+| GET | `/state/chirp-count` | — | Total chirp count |
+| GET | `/state/zones` | — | Zoning cell counts per type |
+| GET | `/state/zones/map` | `sampleStep`, `offsetX`, `offsetZ`, `width`, `height` | Zone cell grid map |
+| GET | `/state/problems` | `limit` (200) | City problems (abandoned, burned, taxes, etc.) |
+| GET | `/state/economy` | — | Tax rates by service/sub-service/level |
+| GET | `/state/budget` | — | Cash balance + population |
+| GET | `/state/budget/detail` | — | Per-service budget with day/night split |
+| GET | `/state/loans` | — | Active loans |
+| GET | `/state/statistics` | — | Population/employment/education/health stats |
+| GET | `/state/statistics/detail` | `category`, `limit` | Time-series stats by category |
 
-## GET /state/summary
+### Buildings
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/facilities` | `limit` (500), `service`, `includeMapObjects` | Service buildings grouped by service |
+| GET | `/state/growables` | `limit` (500), `service` | Zoned growable buildings |
+| GET | `/state/building` | `id` | **Full detail** for one building (all state, problems, citizens, AI type) |
+| GET | `/state/building/upgrades` | `id` | Building level, upgrade progress, upgrade path |
+| GET | `/state/building-anomalies` | `limit` (200) | Buildings colliding with roads |
+| GET | `/state/levels` | — | Level distribution across all growables |
+| GET | `/state/building-level` | Body: `{buildingId}` | Detailed level info for one building |
+| GET | `/prefabs/buildings` | `service` | Available building prefabs |
 
-Returns a small city snapshot: game time, build index, network counts, citizen count, and demand values.
+### Networks (Roads, Water, Power)
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/networks` | `limit` (500), `service` | Network segments (roads/pipes/power) |
+| GET | `/state/network-segment` | `id` | **Full detail** for one segment (nodes, bounds, lanes, traffic lights) |
+| GET | `/state/network-node` | `id` | **Full detail** for one node (position, connected segments) |
+| GET | `/state/road-anomalies` | `limit`, `nearMissDistance`, `shortSegmentLength`, `includeDeadEnds` | Road geometry issues |
+| GET | `/state/traffic-lights` | `limit` (100) | Intersections with traffic light state |
+| GET | `/state/junctions` | `limit` (100) | All junctions (≥3 connected segments) |
+| GET | `/state/road-names` | `limit` (100) | Named road segments |
+| GET | `/state/speed-limits` | `limit` (100) | Per-segment speed limits |
+| GET | `/state/external-connections` | `limit` (50) | Outside road connections |
+| GET | `/prefabs/roads` | — | Road-like NetInfo prefabs |
+| GET | `/prefabs/networks` | `service` | All network prefabs |
 
-## GET /state/demand
+### Traffic & Transport
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/traffic` | `limit` (200) | Vehicle counts by type |
+| GET | `/state/vehicles` | `limit` (200), `service`, `includePosition` | **All vehicles** with position/type/passengers/cargo |
+| GET | `/state/transport-lines` | — | All transport lines (bus/metro/train etc.) |
+| GET | `/state/transfers` | — | Transfer match offers |
 
-Returns the three demand bars shown in the CS1 UI: residential, commercial,
-and workplace demand. Values are `0..100`.
+### Citizens
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/citizens` | — | Citizen count + age distribution |
+| GET | `/state/citizen` | `id` | **Full detail** for one citizen (job, home, education, health, wealth) |
+| GET | `/state/citizens/search` | `limit` (100), `employed`, `age`, `education` | Filter/search citizens |
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/demand
+### Districts
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/districts` | — | All districts with population/policies |
+| GET | `/state/district` | `id` | **Full detail** for one district (all policies, population, land value, consumption) |
+| GET | `/state/areas` | — | Unlocked map tiles |
+| GET | `/state/policies` | `districtId` (0=city) | Full policy enumeration (Services/Taxation/CityPlanning/Specialization) |
+| GET | `/state/district-styles` | — | District building styles |
+| GET | `/state/coverage` | — | Service coverage overview |
+| GET | `/state/coverage/detail` | — | Detailed coverage data |
+
+### Industry & DLC
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/industry-areas` | — | Industry specialization areas (Oil/Ore/Forest/Farming) |
+| GET | `/state/supply-chain` | — | Industries supply chain (extractors → warehouses → processors → factories) |
+| GET | `/state/park-areas` | — | Parklife park areas |
+| GET | `/state/parks/detail` | — | Detailed park stats (visitors, entertainment, land value) |
+| GET | `/state/campus-areas` | — | Campus areas |
+| GET | `/state/campuses/detail` | — | Detailed campus stats (students, workers, happiness) |
+| GET | `/state/airports` | — | Airport areas (passengers, cargo, airplane fullness) |
+
+### Environment & Resources
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/environment` | — | Pollution, land value, terrain, natural resources summary |
+| GET | `/state/natural-resources` | — | Oil/Ore/Forest/Fertility distribution + extractor counts |
+| GET | `/state/terrain` | — | Terrain height range + water level |
+| GET | `/state/immaterial-resources` | — | Land value, attractiveness, entertainment |
+| GET | `/state/electricity` | — | Power production/consumption |
+| GET | `/state/water` | — | Water/sewage production/consumption |
+| GET | `/state/weather` | — | Current weather state |
+| GET | `/state/disasters` | — | Disaster overview |
+| GET | `/state/disasters/active` | — | **Active disasters** with position, intensity |
+| GET | `/state/events` | — | City events |
+| GET | `/state/pathfinding` | — | Path unit stats (active/free counts) |
+| GET | `/state/notifications` | — | Problem building count + simulation state |
+| GET | `/state/trees` | — | Tree count summary |
+| GET | `/state/props` | — | Prop count summary |
+
+### Game Management
+| Method | Path | Query Params | Description |
+|--------|------|-------------|-------------|
+| GET | `/state/camera` | — | Current camera position/target |
+| GET | `/state/saves` | — | Local .crp saves |
+| GET | `/state/maps` | — | Available maps for new games |
+| GET | `/state/milestones` | — | Milestone unlock status |
+| GET | `/state/radio` | — | Audio/radio state |
+| GET | `/state/info-view` | — | Current info overlay mode |
+| GET | `/state/active-tool` | — | Currently active tool |
+| GET | `/state/effects` | — | Active visual effects |
+| GET | `/state/guides` | — | Tutorial guide state |
+
+---
+
+## POST Endpoints (Commands)
+
+### Network Construction
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/build-network` | `{roadPrefab, start, end, name, dryRun}` | Create road/pipe/power segment |
+| POST | `/commands/build-road` | (same) | Alias for build-network |
+| POST | `/commands/bulldoze` | `{entityType, id, keepNodes}` | Delete building/segment/node |
+
+### Building Operations
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/place-building` | `{buildingPrefab, position, angleDegrees, dryRun}` | Place new building |
+| POST | `/commands/move-building` | `{id, position, angleDegrees}` | Relocate building |
+| POST | `/commands/set-building-active` | `{id, active}` | Turn building on/off |
+| POST | `/commands/disable-blocked-assets` | — | Disable known broken assets |
+| POST | `/commands/building-level-info` | `{buildingId}` | Get detailed level info |
+| POST | `/commands/level-up` | `{buildingId, targetLevel}` | Force level up (Residential/Commercial/Office) |
+| POST | `/commands/level-down` | `{buildingId}` | Decrease building level |
+| POST | `/commands/upgrade-building` | `{buildingId, targetLevel}` | Force building level change |
+
+### Zoning
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-zone` | `{zone, center, radius, preserveOccupied, dryRun}` | Paint zones |
+| POST | `/commands/repair-zones-to-growables` | `{dryRun}` | Align zones with existing buildings |
+| POST | `/commands/repair-zone-clusters` | `{gridSize, includePatchy, fillUnzoned, dryRun}` | Repair mottled zoning clusters |
+
+### Economy & Budget
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-tax-rate` | `{service, rate, subService, level, dryRun}` | Set tax rate (0–29) |
+| POST | `/commands/set-budget` | `{service, subService, amount, night}` | Set service budget % (50–150) |
+
+### Simulation
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-simulation-speed` | `{paused, speed}` | Pause/unpause, set speed 1–3 |
+| POST | `/commands/save` | `{name}` | Save game |
+| POST | `/commands/screenshot` | `{filename, width, height}` | Take screenshot |
+
+### Game Management
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/new-game` | `{mapName, theme}` | Start new city |
+| POST | `/commands/load-game` | `{saveName}` | Load save |
+| POST | `/commands/quit-to-menu` | — | Return to main menu |
+| POST | `/commands/console` | `{command}` | Execute console commands (save/pause/speed) |
+
+### Camera
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/move-camera` | `{position, target, instant}` | Move camera |
+| POST | `/commands/focus-building` | `{buildingId, zoomDistance}` | Focus on building |
+| POST | `/commands/clear-camera-target` | — | Release camera target |
+
+### Policies & Districts
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-policy` | `{policyType, policy, active, scope, districtId}` | Set city/district policy |
+| POST | `/commands/set-policy-full` | `{policyType, policy, active, districtId, scope}` | Full policy control (all sub-types) |
+| POST | `/commands/unlock-area` | `{x, z}` | Purchase map tile |
+| POST | `/commands/set-industry-type` | `{districtId, type}` | Set industry specialization |
+| POST | `/commands/set-park-budget` | `{parkId, budget}` | Set park ticket price |
+| POST | `/commands/set-district-style` | `{districtId, style, variation}` | Set district building style |
+
+### Environment & Resources
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/create-disaster` | `{disasterType, position, intensity}` | Trigger disaster |
+| POST | `/commands/start-random-disaster` | — | Random disaster |
+| POST | `/commands/evacuate` | — | Evacuate entire city |
+| POST | `/commands/evacuate-building` | `{buildingId}` | Evacuate specific building |
+| POST | `/commands/lightning-strike` | `{position}` | Trigger lightning strike |
+| POST | `/commands/modify-terrain` | `{x, z, height, radius, mode}` | Modify terrain height |
+| POST | `/commands/set-water-level` | `{x, z, level}` | Set water level |
+| POST | `/commands/set-natural-resource` | `{type, x, z, value, radius}` | Set oil/ore/forest/fertility |
+| POST | `/commands/plant-tree` | `{treePrefab, position}` | Plant tree |
+| POST | `/commands/place-prop` | `{propPrefab, position, angleDegrees}` | Place prop |
+
+### Traffic & Transport
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-traffic-light` | `{segmentId, mode}` | Toggle traffic light |
+| POST | `/commands/rename-road` | `{segmentId, name}` | Rename road |
+| POST | `/commands/create-transport-line` | `{prefab}` | Create bus/metro/train line |
+| POST | `/commands/delete-transport-line` | `{lineId}` | Remove transport line |
+| POST | `/commands/add-stop` | `{lineId, buildingId}` | Add stop to line |
+| POST | `/commands/remove-stop` | `{lineId, stopIndex}` | Remove stop from line |
+
+### Misc
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/commands/set-radio-channel` | `{channelIndex}` | Change radio |
+| POST | `/commands/set-volume` | `{type, volume}` | Set audio volume |
+| POST | `/commands/set-info-view` | `{mode, subMode}` | Switch info overlay |
+| POST | `/commands/dismiss-notifications` | — | Dismiss all notifications |
+| POST | `/commands/dismiss-notification` | `{id}` | Dismiss specific notification |
+| POST | `/commands/unlock-milestone` | `{milestoneName}` | Force unlock milestone |
+| POST | `/commands/batch` | `{commands[], stopOnError, dryRun}` | Run up to 32 commands at once |
+
+---
+
+## Batch Command Types
+
+All POST commands can be batched. Use the `type` field matching the endpoint name:
+
+```
+build-road, set-zone, repair-zones-to-growables, repair-zone-clusters,
+place-building, move-building, bulldoze, set-simulation-speed, set-tax-rate,
+save, set-budget, set-policy, set-policy-full, create-disaster, evacuate,
+start-random-disaster, screenshot, move-camera, focus-building, new-game,
+load-game, unlock-area, plant-tree, place-prop, lightning-strike,
+set-natural-resource, modify-terrain, set-water-level, create-transport-line,
+delete-transport-line, add-stop, remove-stop, dismiss-notification,
+level-up, level-down, set-traffic-light, rename-road, evacuate-building,
+upgrade-building, set-radio-channel, set-volume, set-info-view,
+set-industry-type, set-park-budget, set-district-style, console
 ```
 
-## GET /state/chirps
+---
 
-Returns recent Chirper/citizen messages from CS1's message manager, including
-sender name, sender id, text, message type, and message metadata when available.
-This is useful for reading citizen feedback such as housing demand, tax,
-traffic, service, and city satisfaction comments without OCR.
+## Response Format
 
-```powershell
-Invoke-RestMethod "http://127.0.0.1:32123/state/chirps?limit=50"
-```
+All responses are JSON with `Content-Type: application/json` and CORS headers.
 
-## GET /state/zones
-
-Returns zoning cell counts and approximate area by zone type. CS1 zoning cells
-are reported as 8m x 8m cells, so `areaSquareMeters` is approximate but useful
-for comparing residential, commercial, industrial, office, and unzoned area.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/zones
-```
-
-## GET /state/growables
-
-Returns existing growable residential, commercial, industrial, and office
-buildings with service, sub-service, footprint size, position, active/abandoned
-state, and problem flags. Use this before zoning to avoid painting over already
-developed blocks.
-
-```powershell
-Invoke-RestMethod "http://127.0.0.1:32123/state/growables?limit=500"
-```
-
-## GET /prefabs/roads
-
-Returns loaded `NetInfo` prefabs that look like roads.
-
-## GET /prefabs/networks
-
-Returns loaded network prefabs. Optional service filter:
-
-```http
-GET /prefabs/networks?service=Water
-```
-
-## GET /prefabs/buildings
-
-Returns loaded building prefabs. Optional service filter:
-
-```http
-GET /prefabs/buildings?service=Electricity
-```
-
-Known broken/blocked building assets are omitted from this list. The current
-blocked family is `Block Services - ...`.
-
-## GET /state/problems
-
-Returns in-game notification/problem icons from CS1 data, without using screenshots or computer vision.
-
-```http
-GET /state/problems?limit=200
-```
-
-The response includes both the legacy combined `problems` string and
-structured `problemNames`, `problem1Raw`, `problem2Raw`, and
-`countsByProblem` fields so agents can match individual alerts such as
-`TaxesTooHigh` even when CS1 marks the same building as major or fatal.
-Building rows also surface alert-like flags such as `Abandoned`, `BurnedDown`,
-`Collapsed`, `Flooded`, and `RoadAccessFailed`.
-
-Scanned entity types:
-
-- `building`
-- `netNode`
-- `netSegment`
-
-## GET /state/economy
-
-Returns the currently configured tax rates for zoned residential, commercial,
-industrial, and office sub-services across levels. `aggregateTaxRates` mirrors
-the six tax sliders shown in the CS1 budget UI.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/economy
-```
-
-## GET /state/facilities
-
-Returns current buildings grouped by CS1 service, with optional service
-filtering. This is the API-friendly replacement for reading service icons from
-the screen. Facility items include prefab footprint and rotation so an agent can
-avoid placing large buildings through roads.
-
-By default this excludes internal pipe helper buildings such as `Water Pipe
-Junction` and `Heating Pipe Junction`; pass `includeMapObjects=true` when an
-agent specifically needs raw map objects.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/facilities?limit=500
-Invoke-RestMethod http://127.0.0.1:32123/state/facilities?service=HealthCare
-Invoke-RestMethod http://127.0.0.1:32123/state/facilities?service=PoliceDepartment
-Invoke-RestMethod http://127.0.0.1:32123/state/facilities?includeMapObjects=true
-```
-
-The response includes:
-
-- `countsByService`
-- `countsBySubService`
-- `facilities[]` with `id`, `prefab`, `displayName`, `service`, `subService`, `level`, `width`, `length`, `angleDegrees`, `problems`, and `position`
-
-Response shape:
-
+**Success:**
 ```json
-{
-  "ok": true,
-  "total": 17,
-  "returned": 17,
-  "countsByService": {
-    "Water": 14,
-    "HealthCare": 3
-  },
-  "facilities": [
-    {
-      "id": 123,
-      "prefab": "Inland Water Treatment Plant 01",
-      "service": "Water",
-      "width": 5,
-      "length": 7,
-      "angleDegrees": 180,
-      "problems": "",
-      "position": { "x": 10, "y": 0, "z": 20 }
-    }
-  ]
-}
+{"ok": true, ...data fields...}
 ```
 
-## GET /state/networks
-
-Returns current network segments from CS1 data, without screenshots. Optional
-service filtering is useful for checking roads, water pipes, heating pipes, and
-power lines separately.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/networks?service=Road
-Invoke-RestMethod http://127.0.0.1:32123/state/networks?service=Water
-Invoke-RestMethod http://127.0.0.1:32123/state/networks?limit=1000
-```
-
-Each segment includes `id`, `prefab`, `service`, `subService`, `problems`,
-`name`, `startNodeId`, `endNodeId`, `start`, `end`, and `middle`.
-
-## GET /state/road-anomalies
-
-Detects road geometry that can look connected on screen but is not actually a
-proper CS1 road graph connection.
-
-```powershell
-Invoke-RestMethod "http://127.0.0.1:32123/state/road-anomalies?nearMissDistance=18&shortSegmentLength=32&includeDeadEnds=true"
-```
-
-Detected anomaly types:
-
-- `deadEndNearRoad`: a one-segment road endpoint is very close to another road segment, which often means the endpoint visually touches a road but did not create an intersection.
-- `deadEndRoad`: a normal road dead end. This is legal in CS1, but useful for agent-side design QA because unwanted frontage/service-road stubs often look like this.
-- `shortRoadStub`: a short road segment with a dead end, often left behind by failed frontage-road or service-road placement.
-- `duplicateRoadSegments`: two road segments share the same pair of endpoint nodes, which usually means one should be removed.
-- `overlappingRoadSegments`: two road segments run nearly on top of each other at the same height for a meaningful distance, which usually means a duplicate or accidental overlay.
-- `roadCrossingWithoutNode`: two road segments cross at nearly the same height without sharing a node, which usually means they visually overlap but are not a real intersection.
-- `roadTerrainCliff`: a ground road has a large height mismatch against nearby sampled terrain, which can indicate buried roads or terrain spikes/cliffs caused by bad road placement.
-- `roadBelowLocalGrade`: an agent-built ground road sits far below the surrounding local road grade, which often means a sunken or buried road.
-
-Each anomaly includes the affected node or segment IDs plus world coordinates,
-so an agent can call `/commands/bulldoze` or add a connector road without using
-image recognition.
-
-Helper scripts:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\inspect-road-anomalies.ps1
-
-# Remove suspicious short/dead-end service roads only in a bounded area.
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\repair-road-anomalies.ps1 `
-  -MinX 450 -MaxX 620 -MinZ 90 -MaxZ 250
-```
-
-## GET /state/external-connections
-
-Checks whether the city's local road component is connected to CS1 outside road
-nodes. This is useful when a city visually has highways nearby but no outside
-cars enter because the local road graph is still separate from the highway
-network.
-
-```powershell
-Invoke-RestMethod "http://127.0.0.1:32123/state/external-connections?limit=50"
-```
-
-The response includes `cityConnectedToOutside`,
-`disconnectedLocalRoadComponents`, outside node counts, and sampled road
-components.
-
-## GET /state/building-anomalies
-
-Detects service buildings whose footprint intersects a road segment. This is
-for API-side QA when a building appears to be placed through a road, without
-using screenshots.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/building-anomalies?limit=200
-```
-
-## GET /state/zone-anomalies
-
-Detects mottled zoning from CS1 zone blocks without using screenshots. This is
-useful when circular or overlapping zone paint leaves residential, commercial,
-industrial, office, and unzoned cells mixed inside the same block.
-
-```powershell
-Invoke-RestMethod "http://127.0.0.1:32123/state/zone-anomalies?limit=200&includeUnzonedHoles=true"
-```
-
-Detected anomaly types:
-
-- `mixedZoneBlock`: one zoning block contains multiple non-empty zone types,
-  such as residential cells mixed with commercial or industrial cells.
-- `patchyUnzonedHoles`: one zoning block is mostly one zone type but contains
-  many unzoned cells, which often means an agent left visible holes after
-  repainting.
-
-## POST /commands/build-network
-
-Generic network creation. Use this for roads, water pipes, heating pipes, and
-power lines. `roadPrefab` is kept as the request field name for compatibility
-with the early bridge prototype; pass any loaded `NetInfo` prefab name.
-
-Request:
-
+**Error:**
 ```json
-{
-  "dryRun": true,
-  "roadPrefab": "Basic Road",
-  "start": { "x": 0, "z": 0 },
-  "end": { "x": 80, "z": 0 },
-  "name": "Agent Test Road"
-}
+{"ok": false, "error": "human-readable message"}
 ```
 
-Response:
-
+**Not loaded:**
 ```json
-{
-  "ok": true,
-  "dryRun": true,
-  "message": "Build-road validation passed."
-}
+{"ok": false, "error": "No city is loaded."}
 ```
-
-When `dryRun` is `false`, the mod creates two nodes and one segment with `NetManager`.
-
-## POST /commands/build-road
-
-Compatibility alias for `/commands/build-network`.
-
-## POST /commands/set-zone
-
-Request:
-
-```json
-{
-  "dryRun": true,
-  "preserveOccupied": true,
-  "zone": "ResidentialLow",
-  "center": { "x": 40, "z": 0 },
-  "radius": 32
-}
-```
-
-Supported zones:
-
-- `Unzoned`
-- `ResidentialLow`
-- `ResidentialHigh`
-- `CommercialLow`
-- `CommercialHigh`
-- `Industrial`
-- `Office`
-
-The command paints existing zone blocks near `center`. It works best after roads have created zoning blocks.
-`preserveOccupied` defaults to `true` and skips zone blocks that already contain
-residential, commercial, industrial, office, service, park, or monument
-buildings, so broad zoning commands do not overwrite developed city blocks.
-
-## POST /commands/repair-zones-to-growables
-
-Repairs zone blocks that contain existing growable buildings by aligning
-non-empty zoning cells with the nearest residential, commercial, industrial, or
-office building. Blocks with ambiguous mixed-use occupancy are skipped.
-
-```json
-{
-  "dryRun": true
-}
-```
-
-## POST /commands/repair-zone-clusters
-
-Repairs larger 80m zoning clusters when a whole city block is visually mottled.
-The command can fill unzoned holes and, by default, prefers the nearest existing
-growable building's zone for occupied blocks so cluster repair does not blindly
-convert developed buildings to the cluster's dominant zone.
-
-```json
-{
-  "dryRun": true,
-  "includePatchy": true,
-  "fillUnzoned": true,
-  "preferGrowableZone": true,
-  "gridSize": 80
-}
-```
-
-## POST /commands/place-building
-
-Request:
-
-```json
-{
-  "dryRun": true,
-  "buildingPrefab": "Wind Turbine",
-  "position": { "x": 300, "z": 200 },
-  "angleDegrees": 0
-}
-```
-
-## POST /commands/move-building
-
-Recreates an existing building at a new position with the same prefab and
-deletes the old building. This is intentionally separate from detection and
-from save operations so agents can make small, explicit repair steps.
-
-```json
-{
-  "dryRun": false,
-  "id": 123,
-  "position": { "x": 340, "z": 200 },
-  "angleDegrees": 180
-}
-```
-
-## POST /commands/set-building-active
-
-Turns an existing building on or off by id.
-
-```json
-{
-  "id": 123,
-  "active": false
-}
-```
-
-## POST /commands/disable-blocked-assets
-
-Disables known broken assets in CS1's package asset state so the game should not
-use them. The current blocked family is `Block Services - ...`.
-
-```powershell
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/disable-blocked-assets
-```
-
-## POST /commands/bulldoze
-
-Deletes a problem entity by API. Useful for agent-side repair loops after
-reading `/state/problems`.
-
-```powershell
-$body = @{
-  entityType = "netSegment"
-  id = 21778
-  keepNodes = $false
-} | ConvertTo-Json
-
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/bulldoze -Body $body -ContentType "application/json"
-```
-
-Supported `entityType` values:
-
-- `building`
-- `netSegment`
-- `netNode`
-
-## POST /commands/save
-
-Requests an in-game save through CS1's `SavePanel.SaveGame`, the same code path
-used by the normal UI save button. The game writes the `.crp` package
-asynchronously, so poll `/state/saves` until the returned file appears.
-
-```powershell
-$body = @{ name = "AgentAutoSave-20260512-1900" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:32123/commands/save -Body $body -ContentType "application/json"
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\save-city.ps1 -Name AgentAutoSave-test
-```
-
-## GET /state/saves
-
-Lists local `.crp` saves with paths, timestamps, and file sizes.
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:32123/state/saves
-```
-
-## POST /commands/set-simulation-speed
-
-Request:
-
-```json
-{
-  "paused": false,
-  "speed": 3
-}
-```
-
-`speed` is clamped to `1..3`. Use `paused: true` to pause the
-simulation while keeping the selected speed in a valid UI state.
-
-## POST /commands/set-tax-rate
-
-Sets tax rates for zoned services. Omit `service`, `subService`, or `level` to
-apply the rate broadly; pass `dryRun: true` to preview the affected tax rows.
-
-```json
-{
-  "dryRun": false,
-  "service": "Commercial",
-  "rate": 9
-}
-```
-
-Useful services are `Residential`, `Commercial`, `Industrial`, and `Office`.
-`rate` must be between `0` and `29`.
-
-## POST /commands/batch
-
-Request:
-
-```json
-{
-  "dryRun": true,
-  "stopOnError": true,
-  "commands": [
-    {
-      "type": "build-road",
-      "roadPrefab": "Basic Road",
-      "start": { "x": 120, "z": 0 },
-      "end": { "x": 200, "z": 0 },
-      "name": "Agent Batch Road"
-    },
-    {
-      "type": "set-zone",
-      "zone": "ResidentialLow",
-      "center": { "x": 160, "z": 0 },
-      "radius": 48
-    }
-  ]
-}
-```
-
-Supported command types:
-
-- `build-road`
-- `set-zone`
-
-If an item does not include `dryRun`, it inherits the batch-level `dryRun` value. Batches are limited to 32 commands.
-
-Supported command types:
-
-*   `build-road`
-*   `set-zone`
-*   `repair-zones-to-growables`
-*   `repair-zone-clusters`
-*   `place-building`
-*   `move-building`
-*   `bulldoze`
-*   `set-simulation-speed`
-*   `set-tax-rate`
-*   `save`
-*   `set-budget`
-
-## Budget API (v0.4.0)
-
-### GET /state/budget
-
-Returns cash balance and population.
-
-Invoke-RestMethod http://127.0.0.1:32123/state/budget
-
-### POST /commands/set-budget
-
-Set service budget percentage (50-150) using EconomyManager.SetBudget.
-
-Request:
-
-{
-  "service": "PoliceDepartment",
-  "subService": "PoliceDepartment",
-  "amount": 120,
-  "night": false
-}
-
-`service` and `subService` use `ItemClass.Service`/`ItemClass.SubService` enum names.
+HTTP 409

@@ -25,6 +25,8 @@
 
 The goal is simple: stop relying on screenshots for city state. The bridge exposes useful Cities: Skylines 1 data as local API responses, then lets agents make small explicit changes such as deleting a segment, building a road, placing a service, painting a zone, changing simulation speed, and saving the city.
 
+**66 source files · 223KB DLL · ~150 endpoints · Full CS1 33-Manager coverage · 0 compile errors**
+
 ![API notification overlay in Cities: Skylines 1](docs/assets/api-notification.jpg)
 
 ## ✨ What It Does
