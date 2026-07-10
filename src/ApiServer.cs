@@ -677,6 +677,233 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, delegate { return IndustriesCommands.SetDistrictStyle(body); });
             }
 
+            // === NEW: Building Detail ===
+            if (request.Method == "GET" && request.Path == "/state/building")
+            {
+                return RunOnGameThread(request, delegate { return BuildingDetailCommands.BuildBuildingDetail(request.Query); });
+            }
+
+            // === NEW: Vehicles ===
+            if (request.Method == "GET" && request.Path == "/state/vehicles")
+            {
+                int limit = request.GetQueryInt("limit", 200);
+                string service = request.GetQueryString("service", "");
+                bool includePosition = request.GetQueryString("includePosition", "true") == "true";
+                return RunOnGameThread(request, delegate { return VehicleCommands.BuildVehiclesJson(limit, service, includePosition); });
+            }
+
+            // === NEW: Network Detail ===
+            if (request.Method == "GET" && request.Path == "/state/network-segment")
+            {
+                return RunOnGameThread(request, delegate { return NetworkDetailCommands.BuildSegmentDetail(request.Query); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/network-node")
+            {
+                return RunOnGameThread(request, delegate { return NetworkDetailCommands.BuildNodeDetail(request.Query); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/traffic-lights")
+            {
+                int limit = request.GetQueryInt("limit", 100);
+                return RunOnGameThread(request, delegate { return NetworkDetailCommands.BuildTrafficLightsJson(limit); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-traffic-light")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return NetworkDetailCommands.SetTrafficLight(body); });
+            }
+
+            // === NEW: Policy Detail ===
+            if (request.Method == "GET" && request.Path == "/state/policies")
+            {
+                int districtId = request.GetQueryInt("districtId", 0);
+                return RunOnGameThread(request, delegate { return PolicyDetailCommands.BuildPoliciesJson(districtId); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-policy-full")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return PolicyDetailCommands.SetPolicyFull(body); });
+            }
+
+            // === NEW: Traffic Control ===
+            if (request.Method == "GET" && request.Path == "/state/road-names")
+            {
+                int limit = request.GetQueryInt("limit", 100);
+                return RunOnGameThread(request, delegate { return TrafficControlCommands.BuildRoadNamesJson(limit); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/speed-limits")
+            {
+                int limit = request.GetQueryInt("limit", 100);
+                return RunOnGameThread(request, delegate { return TrafficControlCommands.BuildSpeedLimitsJson(limit); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/junctions")
+            {
+                int limit = request.GetQueryInt("limit", 100);
+                return RunOnGameThread(request, delegate { return TrafficControlCommands.BuildJunctionsJson(limit); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/rename-road")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TrafficControlCommands.RenameRoad(body); });
+            }
+
+            // === NEW: Citizen Detail ===
+            if (request.Method == "GET" && request.Path == "/state/citizen")
+            {
+                return RunOnGameThread(request, delegate { return CitizenDetailCommands.BuildCitizenDetail(request.Query); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/citizens/search")
+            {
+                int limit = request.GetQueryInt("limit", 100);
+                string employed = request.GetQueryString("employed", "");
+                string age = request.GetQueryString("age", "");
+                string education = request.GetQueryString("education", "");
+                return RunOnGameThread(request, delegate { return CitizenDetailCommands.BuildCitizensSearchJson(limit, employed, age, education); });
+            }
+
+            // === NEW: Zone Map ===
+            if (request.Method == "GET" && request.Path == "/state/zones/map")
+            {
+                int sampleStep = request.GetQueryInt("sampleStep", 8);
+                int offsetX = request.GetQueryInt("offsetX", 0);
+                int offsetZ = request.GetQueryInt("offsetZ", 0);
+                int width = request.GetQueryInt("width", 100);
+                int height = request.GetQueryInt("height", 100);
+                return RunOnGameThread(request, delegate { return ZoneDetailCommands.BuildZoneMapJson(sampleStep, offsetX, offsetZ, width, height); });
+            }
+
+            // === NEW: Budget Detail ===
+            if (request.Method == "GET" && request.Path == "/state/budget/detail")
+            {
+                return RunOnGameThread(request, BudgetDetailCommands.BuildBudgetDetailJson);
+            }
+
+            // === NEW: Coverage Detail ===
+            if (request.Method == "GET" && request.Path == "/state/coverage/detail")
+            {
+                return RunOnGameThread(request, BudgetDetailCommands.BuildCoverageDetailJson);
+            }
+
+            // === NEW: Enhanced (Disaster/District/Stats/Upgrade) ===
+            if (request.Method == "GET" && request.Path == "/state/disasters/active")
+            {
+                return RunOnGameThread(request, EnhancedCommands.BuildActiveDisastersJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/evacuate-building")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return EnhancedCommands.EvacuateBuilding(body); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/district")
+            {
+                return RunOnGameThread(request, delegate { return EnhancedCommands.BuildDistrictDetail(request.Query); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/statistics/detail")
+            {
+                return RunOnGameThread(request, delegate { return EnhancedCommands.BuildStatsDetail(request.Query); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/building/upgrades")
+            {
+                return RunOnGameThread(request, delegate { return EnhancedCommands.BuildUpgradesJson(request.Query); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/upgrade-building")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return EnhancedCommands.UpgradeBuilding(body); });
+            }
+
+            // === NEW: Audio / Radio ===
+            if (request.Method == "GET" && request.Path == "/state/radio")
+            {
+                return RunOnGameThread(request, AudioCommands.BuildRadioJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-radio-channel")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return AudioCommands.SetRadioChannel(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-volume")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return AudioCommands.SetVolume(body); });
+            }
+
+            // === NEW: Info View ===
+            if (request.Method == "GET" && request.Path == "/state/info-view")
+            {
+                return RunOnGameThread(request, InfoViewCommands.BuildInfoViewJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-info-view")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return InfoViewCommands.SetInfoView(body); });
+            }
+
+            // === NEW: Console ===
+            if (request.Method == "POST" && request.Path == "/commands/console")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return ConsoleCommands.ExecuteConsole(body); });
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/mods")
+            {
+                return RunOnGameThread(request, ConsoleCommands.BuildModsJson);
+            }
+
+            // === NEW: DLC (Airport/Campus/Parklife/Industries) ===
+            if (request.Method == "GET" && request.Path == "/state/airports")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildAirportJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/supply-chain")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildSupplyChainJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/campuses/detail")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildCampusDetailJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/parks/detail")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildParkDetailJson);
+            }
+
+            // === NEW: Misc (Guide/Tool/Effect) ===
+            if (request.Method == "GET" && request.Path == "/state/guides")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildGuidesJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/active-tool")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildToolJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/effects")
+            {
+                return RunOnGameThread(request, DlcCommands.BuildEffectsJson);
+            }
+
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -862,6 +1089,49 @@ namespace SkylinesAgentBridge
             if (request.Path == "/commands/set-industry-type") return "Set industry type";
             if (request.Path == "/commands/set-park-budget") return "Set park budget";
             if (request.Path == "/commands/set-district-style") return "Set district style";
+
+            // New endpoint descriptions
+            if (request.Method == "GET")
+            {
+                if (request.Path == "/state/building") return "Read building detail";
+                if (request.Path == "/state/vehicles") return "Read vehicles list";
+                if (request.Path == "/state/network-segment") return "Read network segment";
+                if (request.Path == "/state/network-node") return "Read network node";
+                if (request.Path == "/state/traffic-lights") return "Read traffic lights";
+                if (request.Path == "/state/policies") return "Read policies detail";
+                if (request.Path == "/state/road-names") return "Read road names";
+                if (request.Path == "/state/speed-limits") return "Read speed limits";
+                if (request.Path == "/state/junctions") return "Read junctions";
+                if (request.Path == "/state/citizen") return "Read citizen detail";
+                if (request.Path == "/state/citizens/search") return "Search citizens";
+                if (request.Path == "/state/zones/map") return "Read zone map";
+                if (request.Path == "/state/budget/detail") return "Read budget detail";
+                if (request.Path == "/state/coverage/detail") return "Read coverage detail";
+                if (request.Path == "/state/disasters/active") return "Read active disasters";
+                if (request.Path == "/state/district") return "Read district detail";
+                if (request.Path == "/state/statistics/detail") return "Read stats detail";
+                if (request.Path == "/state/building/upgrades") return "Read building upgrades";
+                if (request.Path == "/state/radio") return "Read radio state";
+                if (request.Path == "/state/info-view") return "Read info view mode";
+                if (request.Path == "/state/mods") return "Read installed mods";
+                if (request.Path == "/state/airports") return "Read airport areas";
+                if (request.Path == "/state/supply-chain") return "Read supply chain";
+                if (request.Path == "/state/campuses/detail") return "Read campus detail";
+                if (request.Path == "/state/parks/detail") return "Read park detail";
+                if (request.Path == "/state/guides") return "Read guide state";
+                if (request.Path == "/state/active-tool") return "Read active tool";
+                if (request.Path == "/state/effects") return "Read active effects";
+            }
+
+            if (request.Path == "/commands/set-traffic-light") return "Set traffic light";
+            if (request.Path == "/commands/set-policy-full") return "Set policy (full)";
+            if (request.Path == "/commands/rename-road") return "Rename road";
+            if (request.Path == "/commands/evacuate-building") return "Evacuate building";
+            if (request.Path == "/commands/upgrade-building") return "Upgrade building";
+            if (request.Path == "/commands/set-radio-channel") return "Set radio channel";
+            if (request.Path == "/commands/set-volume") return "Set volume";
+            if (request.Path == "/commands/set-info-view") return "Set info view";
+            if (request.Path == "/commands/console") return "Execute console command";
 
             return request.Method + " " + request.Path;
         }

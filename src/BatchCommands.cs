@@ -179,6 +179,42 @@ namespace SkylinesAgentBridge
                 {
                     result = IndustriesCommands.SetDistrictStyle(command);
                 }
+                else if (type == "set-traffic-light")
+                {
+                    result = NetworkDetailCommands.SetTrafficLight(command);
+                }
+                else if (type == "set-policy-full")
+                {
+                    result = PolicyDetailCommands.SetPolicyFull(command);
+                }
+                else if (type == "rename-road")
+                {
+                    result = TrafficControlCommands.RenameRoad(command);
+                }
+                else if (type == "evacuate-building")
+                {
+                    result = EnhancedCommands.EvacuateBuilding(command);
+                }
+                else if (type == "upgrade-building")
+                {
+                    result = EnhancedCommands.UpgradeBuilding(command);
+                }
+                else if (type == "set-radio-channel")
+                {
+                    result = AudioCommands.SetRadioChannel(command);
+                }
+                else if (type == "set-volume")
+                {
+                    result = AudioCommands.SetVolume(command);
+                }
+                else if (type == "set-info-view")
+                {
+                    result = InfoViewCommands.SetInfoView(command);
+                }
+                else if (type == "console")
+                {
+                    result = ConsoleCommands.ExecuteConsole(command);
+                }
                 else
                 {
                     result = CommandResult.Fail("Unsupported command type: " + type);
