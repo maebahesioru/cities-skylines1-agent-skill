@@ -111,6 +111,74 @@ namespace SkylinesAgentBridge
                 {
                     result = GameCommands.LoadGame(command);
                 }
+                else if (type == "unlock-area")
+                {
+                    result = GameAreaCommands.UnlockArea(command);
+                }
+                else if (type == "plant-tree")
+                {
+                    result = TreeCommands.PlantTree(command);
+                }
+                else if (type == "place-prop")
+                {
+                    result = PropCommands.PlaceProp(command);
+                }
+                else if (type == "lightning-strike")
+                {
+                    result = WeatherCommands.LightningStrike(command);
+                }
+                else if (type == "set-natural-resource")
+                {
+                    result = NaturalResourceCommands.SetResource(command);
+                }
+                else if (type == "modify-terrain")
+                {
+                    result = TerrainCommands.ModifyTerrain(command);
+                }
+                else if (type == "set-water-level")
+                {
+                    result = TerrainCommands.SetWaterLevel(command);
+                }
+                else if (type == "create-transport-line")
+                {
+                    result = TransportLineCommands.CreateTransportLine(command);
+                }
+                else if (type == "delete-transport-line")
+                {
+                    result = TransportLineCommands.DeleteTransportLine(command);
+                }
+                else if (type == "add-stop")
+                {
+                    result = TransportLineCommands.AddStop(command);
+                }
+                else if (type == "remove-stop")
+                {
+                    result = TransportLineCommands.RemoveStop(command);
+                }
+                else if (type == "dismiss-notification")
+                {
+                    result = NotificationCommands.DismissNotification(command);
+                }
+                else if (type == "level-up")
+                {
+                    result = LevelCommands.LevelUpBuilding(command);
+                }
+                else if (type == "level-down")
+                {
+                    result = LevelCommands.LevelDownBuilding(command);
+                }
+                else if (type == "set-industry-type")
+                {
+                    result = IndustriesCommands.SetIndustryType(command);
+                }
+                else if (type == "set-park-budget")
+                {
+                    result = IndustriesCommands.SetParkBudget(command);
+                }
+                else if (type == "set-district-style")
+                {
+                    result = IndustriesCommands.SetDistrictStyle(command);
+                }
                 else
                 {
                     result = CommandResult.Fail("Unsupported command type: " + type);

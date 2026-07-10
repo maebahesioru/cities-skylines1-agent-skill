@@ -531,6 +531,152 @@ namespace SkylinesAgentBridge
                 return RunOnGameThread(request, ChirpCommands.GetChirpCount);
             }
 
+            // === NEW: Natural Resources ===
+            if (request.Method == "GET" && request.Path == "/state/natural-resources")
+            {
+                return RunOnGameThread(request, NaturalResourceCommands.BuildResourcesJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-natural-resource")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return NaturalResourceCommands.SetResource(body); });
+            }
+
+            // === NEW: Terrain ===
+            if (request.Method == "GET" && request.Path == "/state/terrain")
+            {
+                return RunOnGameThread(request, TerrainCommands.BuildTerrainJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/modify-terrain")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TerrainCommands.ModifyTerrain(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-water-level")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TerrainCommands.SetWaterLevel(body); });
+            }
+
+            // === NEW: Transport Lines ===
+            if (request.Method == "GET" && request.Path == "/state/transport-lines")
+            {
+                return RunOnGameThread(request, TransportLineCommands.BuildTransportLinesJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/create-transport-line")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TransportLineCommands.CreateTransportLine(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/delete-transport-line")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TransportLineCommands.DeleteTransportLine(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/add-stop")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TransportLineCommands.AddStop(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/remove-stop")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return TransportLineCommands.RemoveStop(body); });
+            }
+
+            // === NEW: Notifications ===
+            if (request.Method == "GET" && request.Path == "/state/notifications")
+            {
+                return RunOnGameThread(request, NotificationCommands.BuildNotificationsJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/dismiss-notifications")
+            {
+                return RunOnGameThread(request, NotificationCommands.DismissAllNotifications);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/dismiss-notification")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return NotificationCommands.DismissNotification(body); });
+            }
+
+            // === NEW: Pathfinding ===
+            if (request.Method == "GET" && request.Path == "/state/pathfinding")
+            {
+                return RunOnGameThread(request, PathCommands.BuildPathfindingJson);
+            }
+
+            // === NEW: Building Levels ===
+            if (request.Method == "GET" && request.Path == "/state/levels")
+            {
+                return RunOnGameThread(request, LevelCommands.BuildLevelsJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/building-level")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return LevelCommands.GetBuildingLevelInfo(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/level-up")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return LevelCommands.LevelUpBuilding(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/level-down")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return LevelCommands.LevelDownBuilding(body); });
+            }
+
+            // === NEW: Industries / Parks / Campus / Styles ===
+            if (request.Method == "GET" && request.Path == "/state/industry-areas")
+            {
+                return RunOnGameThread(request, IndustriesCommands.BuildIndustryAreasJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/park-areas")
+            {
+                return RunOnGameThread(request, IndustriesCommands.BuildParkAreasJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/campus-areas")
+            {
+                return RunOnGameThread(request, IndustriesCommands.BuildCampusAreasJson);
+            }
+
+            if (request.Method == "GET" && request.Path == "/state/district-styles")
+            {
+                return RunOnGameThread(request, IndustriesCommands.BuildDistrictStylesJson);
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-industry-type")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return IndustriesCommands.SetIndustryType(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-park-budget")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return IndustriesCommands.SetParkBudget(body); });
+            }
+
+            if (request.Method == "POST" && request.Path == "/commands/set-district-style")
+            {
+                string body = request.Body;
+                return RunOnGameThread(request, delegate { return IndustriesCommands.SetDistrictStyle(body); });
+            }
+
             return HttpResponse.Json(404, "{\"ok\":false,\"error\":\"Not found\"}");
         }
 
@@ -689,7 +835,33 @@ namespace SkylinesAgentBridge
                 if (request.Path == "/state/trees") return "Read trees";
                 if (request.Path == "/state/props") return "Read props";
                 if (request.Path == "/state/weather") return "Read weather";
+                if (request.Path == "/state/natural-resources") return "Read natural resources";
+                if (request.Path == "/state/terrain") return "Read terrain data";
+                if (request.Path == "/state/transport-lines") return "Read transport lines";
+                if (request.Path == "/state/notifications") return "Read notifications";
+                if (request.Path == "/state/pathfinding") return "Read pathfinding data";
+                if (request.Path == "/state/levels") return "Read building levels";
+                if (request.Path == "/state/building-level") return "Read building level info";
+                if (request.Path == "/state/industry-areas") return "Read industry areas";
+                if (request.Path == "/state/park-areas") return "Read park areas";
+                if (request.Path == "/state/campus-areas") return "Read campus areas";
+                if (request.Path == "/state/district-styles") return "Read district styles";
             }
+
+            if (request.Path == "/commands/set-natural-resource") return "Set natural resource";
+            if (request.Path == "/commands/modify-terrain") return "Modify terrain";
+            if (request.Path == "/commands/set-water-level") return "Set water level";
+            if (request.Path == "/commands/create-transport-line") return "Create transport line";
+            if (request.Path == "/commands/delete-transport-line") return "Delete transport line";
+            if (request.Path == "/commands/add-stop") return "Add transport stop";
+            if (request.Path == "/commands/remove-stop") return "Remove transport stop";
+            if (request.Path == "/commands/dismiss-notifications") return "Dismiss all notifications";
+            if (request.Path == "/commands/dismiss-notification") return "Dismiss notification";
+            if (request.Path == "/commands/level-up") return "Level up building";
+            if (request.Path == "/commands/level-down") return "Level down building";
+            if (request.Path == "/commands/set-industry-type") return "Set industry type";
+            if (request.Path == "/commands/set-park-budget") return "Set park budget";
+            if (request.Path == "/commands/set-district-style") return "Set district style";
 
             return request.Method + " " + request.Path;
         }
