@@ -34,7 +34,7 @@ namespace SkylinesAgentBridge
                 return;
             }
 
-            listener = new TcpListener(IPAddress.Loopback, port);
+            listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
             running = true;
 
