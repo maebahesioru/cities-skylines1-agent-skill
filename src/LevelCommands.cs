@@ -180,14 +180,14 @@ namespace SkylinesAgentBridge
             string levelUpInfo = "";
             if (b.Info.m_buildingAI != null)
             {
-                levelUpInfo = b.Info.m_buildingAI.GetLevelUpInfo(buildingId, ref b, out progress) ?? "";
+                levelUpInfo = b.Info.m_buildingAI.GetLevelUpInfo(buildingId, ref b, out progress) != null ? b.Info.m_buildingAI.GetLevelUpInfo(buildingId, ref b, out progress) : "";
             }
 
             return CommandResult.FromJson("{\"ok\":true,\"buildingId\":" + buildingId +
                 ",\"currentLevel\":" + (int)b.m_level +
                 ",\"levelUpProgress\":" + JsonUtil.Number(progress) +
                 ",\"levelUpInfo\":\"" + JsonUtil.Escape(levelUpInfo) +
-                "\",\"buildingType\":\"" + JsonUtil.Escape(b.Info.name ?? "") + "\"}");
+                "\",\"buildingType\":\"" + JsonUtil.Escape(b.Info.name != null ? b.Info.name : "") + "\"}");
         }
     }
 }

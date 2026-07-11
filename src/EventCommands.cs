@@ -32,7 +32,7 @@ namespace SkylinesAgentBridge
                 var sizeField = typeof(FastList<>).GetField("m_size",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-                Array buffer = bufferField?.GetValue(evm.m_events) as Array;
+                Array buffer = bufferField.GetValue(evm.m_events) as Array;
                 int size = sizeField != null ? (int)sizeField.GetValue(evm.m_events) : 0;
 
                 if (buffer != null)

@@ -37,7 +37,7 @@ namespace SkylinesAgentBridge
             json.Append(",\"id\":").Append(buildingId);
 
             // Name
-            json.Append(",\"name\":\"").Append(JsonUtil.Escape(info != null ? info.name ?? "" : "")).Append("\"");
+            json.Append(",\"name\":\"").Append(JsonUtil.Escape(info != null ? info.name != null ? info.name : "" : "")).Append("\"");
 
             // Position
             json.Append(",\"position\":{\"x\":").Append(JsonUtil.Number(b.m_position.x));

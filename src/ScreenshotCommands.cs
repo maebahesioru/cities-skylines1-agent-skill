@@ -31,8 +31,12 @@ namespace SkylinesAgentBridge
 
             // Save to the game's screenshots folder
             string screenshotsPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "Colossal Order", "Cities_Skylines", "Screenshots");
+                System.IO.Path.Combine(
+                    System.IO.Path.Combine(
+                        System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                        "Colossal Order"),
+                    "Cities_Skylines"),
+                "Screenshots");
             string fullPath = System.IO.Path.Combine(screenshotsPath, filename);
 
             try

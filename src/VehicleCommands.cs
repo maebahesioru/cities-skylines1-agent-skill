@@ -59,7 +59,7 @@ namespace SkylinesAgentBridge
 
                 if (info != null)
                 {
-                    json.Append(",\"type\":\"").Append(JsonUtil.Escape(info.name ?? "")).Append("\"");
+                    json.Append(",\"type\":\"").Append(JsonUtil.Escape(info.name != null ? info.name : "")).Append("\"");
                     json.Append(",\"vehicleType\":").Append((int)info.m_vehicleType);
                 }
 

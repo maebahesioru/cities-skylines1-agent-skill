@@ -38,7 +38,7 @@ namespace SkylinesAgentBridge
 
             if (info != null)
             {
-                json.Append(",\"name\":\"").Append(JsonUtil.Escape(info.name ?? "")).Append("\"");
+                json.Append(",\"name\":\"").Append(JsonUtil.Escape(info.name != null ? info.name : "")).Append("\"");
                 json.Append(",\"service\":\"").Append(info.m_netAI != null ? info.m_netAI.GetType().Name : "Unknown").Append("\"");
                 json.Append(",\"speedLimit\":").Append(JsonUtil.Number(info.m_halfWidth));
             }
@@ -114,7 +114,7 @@ namespace SkylinesAgentBridge
 
             if (info != null)
             {
-                json.Append(",\"name\":\"").Append(JsonUtil.Escape(info.name ?? "")).Append("\"");
+                json.Append(",\"name\":\"").Append(JsonUtil.Escape(info.name != null ? info.name : "")).Append("\"");
             }
 
             json.Append(",\"position\":{\"x\":").Append(JsonUtil.Number(node.m_position.x));

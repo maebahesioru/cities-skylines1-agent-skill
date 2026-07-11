@@ -40,7 +40,7 @@ namespace SkylinesAgentBridge
                 {
                     int size = 0;
                     try { size = (int)sizeField.GetValue(dm.m_disasters); } catch { }
-                    Array buffer = bufferField?.GetValue(dm.m_disasters) as Array;
+                    Array buffer = bufferField.GetValue(dm.m_disasters) as Array;
 
                     if (buffer != null)
                     {

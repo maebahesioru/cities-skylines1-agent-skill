@@ -17,8 +17,12 @@ namespace SkylinesAgentBridge
 
             // Save files
             string savesPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "Colossal Order", "Cities_Skylines", "Saves");
+                System.IO.Path.Combine(
+                    System.IO.Path.Combine(
+                        System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                        "Colossal Order"),
+                    "Cities_Skylines"),
+                "Saves");
 
             json.Append(",\"saves\":[");
             int count = 0;
@@ -86,8 +90,12 @@ namespace SkylinesAgentBridge
                 file = name + ".crp";
 
             string savesPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "Colossal Order", "Cities_Skylines", "Saves");
+                System.IO.Path.Combine(
+                    System.IO.Path.Combine(
+                        System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                        "Colossal Order"),
+                    "Cities_Skylines"),
+                "Saves");
             string fullPath = System.IO.Path.Combine(savesPath, file);
 
             if (!System.IO.File.Exists(fullPath))

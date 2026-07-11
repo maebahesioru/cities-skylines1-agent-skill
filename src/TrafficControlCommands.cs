@@ -74,7 +74,7 @@ namespace SkylinesAgentBridge
             if (seg.m_flags == NetSegment.Flags.None)
                 return CommandResult.Fail("Segment does not exist: " + segId);
 
-            string oldName = nm.GetSegmentName(segId) ?? "";
+            string oldName = nm.GetSegmentName(segId) != null ? nm.GetSegmentName(segId) : "";
             nm.SetSegmentName(segId, newName);
 
             return CommandResult.FromJson("{\"ok\":true,\"segmentId\":" + segId +
@@ -117,7 +117,7 @@ namespace SkylinesAgentBridge
                 json.Append("{");
                 json.Append("\"segmentId\":").Append(i);
                 json.Append(",\"speedLimit\":").Append(JsonUtil.Number(info.m_halfWidth));
-                json.Append(",\"name\":\"").Append(JsonUtil.Escape(nm.GetSegmentName(i) ?? "")).Append("\"");
+                json.Append(",\"name\":\"").Append(JsonUtil.Escape(nm.GetSegmentName(i) != null ? nm.GetSegmentName(i) : "")).Append("\"");
                 json.Append(",\"startNode\":").Append(seg.m_startNode);
                 json.Append(",\"endNode\":").Append(seg.m_endNode);
                 json.Append(",\"averageLength\":").Append(JsonUtil.Number(seg.m_averageLength));

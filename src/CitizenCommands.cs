@@ -27,8 +27,8 @@ namespace SkylinesAgentBridge
             int sick = 0, dead = 0;
             int employed = 0, unemployed = 0;
 
-            Citizen[] buffer = cm.m_citizens?.m_buffer;
-            int size = (int)(cm.m_citizens?.m_size ?? 0u);
+            Citizen[] buffer = cm.m_citizens.m_buffer;
+            int size = (int)(cm.m_citizens.m_size);
 
             if (buffer != null)
             {
